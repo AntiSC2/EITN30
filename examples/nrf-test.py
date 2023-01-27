@@ -34,7 +34,19 @@ if __name__ == "__main__":
     SPI1['spi'] = busio.SPI(**{x: SPI1[x] for x in ['clock', 'MOSI', 'MISO']})
 
     # initialize the nRF24L01 on the spi bus object
-    rx_nrf = RF24(**{x: SPI0[x] for x in ['spi', 'csn', 'ce']})
-    tx_nrf = RF24(**{x: SPI1[x] for x in ['spi', 'csn', 'ce']})
+    for clock in range(40):
+        for MOSI in range(40):
+            for MISO in range(40):
+                try:
+                    SPI0['clock'] = clock
+                    SPI0['MOSI'] = MOSI
+                    SPI0['MISO'] = MISO
+                    SPI0['spi'] = busio.SPI(**{x: SPI0[x] for x in ['clock', 'MOSI', 'MISO']})
+                    rx_nrf = RF24(SPI0['spi'], SPI0['csn'], SPI0['ce'])
+                except Exception:
+                    continue
+                finally:
+                    print("MISO: {}, MOSI: {}, clock: {}".format(clock, MOSI, MISO))
+    tx_nrf = RF24(SPI0['spi'], SPI0['csn'], SPI0['ce'])
 
     print('nRF24L01+ found on SPI0: {}, SPI1: {}'.format(rx_nrf, tx_nrf))
