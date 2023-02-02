@@ -39,19 +39,6 @@ nrf.pa_level = -12
 # addresses needs to be in a buffer protocol object (bytearray)
 address = [b"1Node", b"2Node"]
 
-# to use different addresses on a pair of radios, we need a variable to
-# uniquely identify which address this radio will use to transmit
-# 0 uses address[0] to transmit, 1 uses address[1] to transmit
-radio_number = bool(
-    int(input("Which radio is this? Enter '0' or '1'. Defaults to '0' ") or 0)
-)
-
-# set TX address of RX node into the TX pipe
-nrf.open_tx_pipe(address[radio_number])  # always uses pipe 0
-
-# set RX address of TX node into an RX pipe
-nrf.open_rx_pipe(1, address[not radio_number])  # using pipe 1
-
 # using the python keyword global is bad practice. Instead we'll use a 1 item
 # list to store our float number for the payloads sent
 payload = [0.0]
@@ -114,3 +101,22 @@ def slave(timeout=15):
     nrf.listen = False  # put the nRF24L01 is in TX mode
 
 
+if __name__ == "__main__":
+    radio_number = bool(
+        int(input("Which radio is this? Enter '0' or '1'. Defaults to '0' ") or 0)
+    )
+
+    # to use different addresses on a pair of radios, we need a variable to
+    # uniquely identify which address this radio will use to transmit
+    # 0 uses address[0] to transmit, 1 uses address[1] to transmit
+
+    # set TX address of RX node into the TX pipe
+    nrf.open_tx_pipe(address[radio_number])  # always uses pipe 0
+
+    # set RX address of TX node into an RX pipe
+    nrf.open_rx_pipe(1, address[not radio_number])  # using pipe 1
+
+    if radio_number == 0:
+        master()
+    else:
+        slave()
