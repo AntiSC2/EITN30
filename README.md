@@ -1,5 +1,8 @@
 # EITN30
 
-This is an attempt to edit from VScode via ssh.
-
-This is another attempt from the other Pi.
+TODO:
+- Setup automatic wifi connection on the Pis
+- Maximise throughput
+    - Typ kopiera test och ändra så att det kan skicka samtidigt åt båda hållen
+- System architecture
+- Individual goals
