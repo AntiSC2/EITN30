@@ -62,28 +62,29 @@ payload = [0.0]
 # nrf.payload_length = 4
 
 
-def master(count=5):  # count = 5 will only transmit 5 packets
+def master(count=1000000):  # count = 5 will only transmit 5 packets
     """Transmits an incrementing integer every second"""
     nrf.listen = False  # ensures the nRF24L01 is in TX mode
-
+    start_timer = time.monotonic_ns()  # start timer
     while count:
         # use struct.pack to structure your data
         # into a usable payload
         buffer = struct.pack("<f", payload[0])
         # "<f" means a single little endian (4 byte) float value.
-        start_timer = time.monotonic_ns()  # start timer
         result = nrf.send(buffer)
-        end_timer = time.monotonic_ns()  # end timer
         if not result:
             print("send() failed or timed out")
         else:
             print(
-                "Transmission successful! Time to Transmit:",
-                "{} us. Sent: {}".format((end_timer - start_timer) / 1000, payload[0]),
+                "Transmission successful! Sent: {}".format(payload[0])
             )
             payload[0] += 0.01
-        time.sleep(1)
+        # time.sleep(1)
         count -= 1
+    end_timer = time.monotonic_ns()  # end timer
+    print(
+        "Time to Transmit: {} us".format((end_timer - start_timer) / 1000)
+    )
 
 
 def slave(timeout=15):
