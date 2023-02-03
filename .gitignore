@@ -1,3 +1,13 @@
 venv/*
 **/__pycache__/*
 .DS_store
+CMakeCache.txt
+CMakeFiles/*
+lib/*
+Makefile
+cmake_install.cmake
+EITN30
+DEBIAN/*
+CPackConfig.cmake
+CPackSourceConfig.cmake
+compile_commands.json
