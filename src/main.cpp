@@ -161,9 +161,9 @@ void slave()
         if (radio.available(&pipe)) {                        // is there a payload? get the pipe number that recieved it
             uint8_t bytes = radio.getPayloadSize();          // get the size of the payload
             radio.read(&payload, bytes);                     // fetch payload from FIFO
-            cout << "Received " << (unsigned int)bytes;      // print the size of the payload
-            cout << " bytes on pipe " << (unsigned int)pipe; // print the pipe number
-            cout << ": " << payload << endl;                 // print the payload's value
+            //cout << "Received " << (unsigned int)bytes;      // print the size of the payload
+            //cout << " bytes on pipe " << (unsigned int)pipe; // print the pipe number
+            //cout << ": " << payload << endl;                 // print the payload's value
             startTimer = time(nullptr);                      // reset timer
         }
     }
