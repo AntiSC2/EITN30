@@ -110,10 +110,10 @@ void master()
         //delay(1000); // slow transmissions down by 1 second
     }
     end = chrono::system_clock::now();
-    int elapsed_s chrono::duration_cast<std::chrono::seconds>(end - start).count();
+    auto elapsed_s = chrono::duration_cast<chrono::seconds>(end - start).count();
 
     int total_payload_B = packets_sent * 32;
-    int speed_Bps = total_payload_B / elapsed_s;
+    auto speed_Bps = total_payload_B / elapsed_s;
 
     cout << "Speed: " << speed_Bps << "Bps" << endl;
     cout << packets_sent << " packets sent." << endl;
