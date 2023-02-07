@@ -110,12 +110,12 @@ void master()
         //delay(1000); // slow transmissions down by 1 second
     }
     end = chrono::system_clock::now();
-    auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    chrono::duration<double, chrono::seconds> elapsed_ms = end - start;
 
     int total_payload_B = packets_sent * 32;
-    auto speed_Bps = total_payload_B / 1000.0 * elapsed_ms;
+    auto speed_Bps = total_payload_B / elapsed_ms.count();
 
-    cout << "Speed: " << speed_Bps << "Bps" << endl;
+    cout << "Speed: " << speed_Bps << " Bps" << endl;
     cout << packets_sent << " packets sent." << endl;
     cout << failure << " failures detected. Leaving TX role." << endl;
 }
