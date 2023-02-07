@@ -7,3 +7,11 @@ TODO:
 - Change to C lib, setup
 - System architecture
 - Individual goals
+
+
+INDIVIDUAL GOAL IDEAS:
+1. Stream a video from the mobile unit
+    - Link for download, many browsers offer to stream instead of download
+    - Bandwidth
+2. Minimize latency / maximize bandwidth
+
