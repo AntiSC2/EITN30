@@ -85,7 +85,7 @@ void master()
 
     unsigned int packets_sent = 0;
     unsigned int failure = 0; // keep track of failures
-    while (failure < 6) {
+    while (packets_sent < 30000) {
         clock_gettime(CLOCK_MONOTONIC_RAW, &startTimer);    // start the timer
         bool report = radio.write(&payload, sizeof(float)); // transmit & save the report
         uint32_t timerEllapsed = getMicros();               // end the timer
