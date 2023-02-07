@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 
     radio.setPayloadSize(sizeof(payload)); // float datatype occupies 4 bytes
 
-    radio.setPALevel(RF24_PA_LOW); // RF24_PA_MAX is default.
+    radio.setPALevel(RF24_PA_MAX); // RF24_PA_MAX is default.
 
     radio.setDataRate(RF24_2MBPS);
 
@@ -110,10 +110,10 @@ void master()
         //delay(1000); // slow transmissions down by 1 second
     }
     end = chrono::system_clock::now();
-    auto elapsed_s = chrono::duration_cast<chrono::seconds>(end - start).count();
+    auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(end - start).count();
 
     int total_payload_B = packets_sent * 32;
-    auto speed_Bps = total_payload_B / elapsed_s;
+    auto speed_Bps = total_payload_B / 1000.0 * elapsed_ms;
 
     cout << "Speed: " << speed_Bps << "Bps" << endl;
     cout << packets_sent << " packets sent." << endl;
