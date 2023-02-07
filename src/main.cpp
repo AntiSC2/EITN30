@@ -113,9 +113,9 @@ void master()
     chrono::duration<double> elapsed_s = end - start;
 
     int total_payload_b = packets_sent * 32 * 8;
-    auto speed_Bps = total_payload_b / elapsed_s.count();
+    auto speed_bps = total_payload_b / elapsed_s.count();
 
-    cout << "Speed: " << speed_Bps << " Bps" << endl;
+    cout << "Speed: " << speed_bps << " bps" << endl;
     cout << packets_sent << " packets sent." << endl;
     cout << failure << " failures detected. Leaving TX role." << endl;
 }
