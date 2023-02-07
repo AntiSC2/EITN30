@@ -3,6 +3,7 @@
 #include <string>      // string, getline()
 #include <time.h>      // CLOCK_MONOTONIC_RAW, timespec, clock_gettime()
 #include <RF24.h>      // RF24, RF24_PA_LOW, delay()
+#include <chrono>
 
 using namespace std;
 
@@ -83,18 +84,19 @@ void master()
 {
     radio.stopListening(); // put radio in TX mode
 
+    chrono::time_point<chrono::system_clock> start, end;
+
     unsigned int packets_sent = 0;
     unsigned int failure = 0; // keep track of failures
+    start = chrono::system_clock::now();
     while (packets_sent < 30000) {
-        clock_gettime(CLOCK_MONOTONIC_RAW, &startTimer);    // start the timer
         bool report = radio.write(&payload, sizeof(float)); // transmit & save the report
-        uint32_t timerEllapsed = getMicros();               // end the timer
 
         if (report) {
             // payload was delivered
-            cout << "Transmission successful! Time to transmit = ";
-            cout << timerEllapsed;                    // print the timer result
-            cout << " us. Sent: " << payload << endl; // print payload sent
+            //cout << "Transmission successful! Time to transmit = ";
+            //cout << timerEllapsed;                    // print the timer result
+            //cout << " us. Sent: " << payload << endl; // print payload sent
             payload += 0.01;                          // increment float payload
             packets_sent += 1;
         }
@@ -107,6 +109,13 @@ void master()
         // to make this example readable in the terminal
         //delay(1000); // slow transmissions down by 1 second
     }
+    end = chrono::system_clock::now();
+    int elapsed_s chrono::duration_cast<std::chrono::seconds>(end - start).count();
+
+    int total_payload_B = packets_sent * 32;
+    int speed_Bps = total_payload_B / elapsed_s;
+
+    cout << "Speed: " << speed_Bps << "Bps" << endl;
     cout << packets_sent << " packets sent." << endl;
     cout << failure << " failures detected. Leaving TX role." << endl;
 }
@@ -133,13 +142,4 @@ void slave()
     cout << packets_received << " packets received." << endl;
     cout << "Nothing received in 6 seconds. Leaving RX role." << endl;
     radio.stopListening();
-}
-
-uint32_t getMicros()
-{
-    clock_gettime(CLOCK_MONOTONIC_RAW, &endTimer);
-    uint32_t seconds = endTimer.tv_sec - startTimer.tv_sec;
-    uint32_t useconds = (endTimer.tv_nsec - startTimer.tv_nsec) / 1000;
-
-    return ((seconds)*1000 + useconds) + 0.5;
 }
