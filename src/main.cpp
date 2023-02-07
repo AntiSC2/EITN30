@@ -83,6 +83,7 @@ void master()
 {
     radio.stopListening(); // put radio in TX mode
 
+    unsigned int packets_sent = 0;
     unsigned int failure = 0; // keep track of failures
     while (failure < 6) {
         clock_gettime(CLOCK_MONOTONIC_RAW, &startTimer);    // start the timer
@@ -95,6 +96,7 @@ void master()
             cout << timerEllapsed;                    // print the timer result
             cout << " us. Sent: " << payload << endl; // print payload sent
             payload += 0.01;                          // increment float payload
+            packets_sent += 1;
         }
         else {
             // payload was not delivered
@@ -103,8 +105,9 @@ void master()
         }
 
         // to make this example readable in the terminal
-        delay(1000); // slow transmissions down by 1 second
+        //delay(1000); // slow transmissions down by 1 second
     }
+    cout << packets_sent << " packets sent." << endl;
     cout << failure << " failures detected. Leaving TX role." << endl;
 }
 
@@ -113,6 +116,7 @@ void slave()
 
     radio.startListening(); // put radio in RX mode
 
+    unsigned int packets_received = 0;
     time_t startTimer = time(nullptr);       // start a timer
     while (time(nullptr) - startTimer < 6) { // use 6 second timeout
         uint8_t pipe;
@@ -123,8 +127,10 @@ void slave()
             cout << " bytes on pipe " << (unsigned int)pipe; // print the pipe number
             cout << ": " << payload << endl;                 // print the payload's value
             startTimer = time(nullptr);                      // reset timer
+            packets_received += 1;        
         }
     }
+    cout << packets_received << " packets received." << endl;
     cout << "Nothing received in 6 seconds. Leaving RX role." << endl;
     radio.stopListening();
 }
