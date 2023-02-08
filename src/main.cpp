@@ -48,6 +48,9 @@ int main(int argc, char** argv)
 
     radio.setAutoAck(false);
 
+    // set channel above wifi spectrum
+    radio.setChannel(105); 
+
     // set the TX address of the RX node into the TX pipe
     radio.openWritingPipe(address[radioNumber]); // always uses pipe 0
 
