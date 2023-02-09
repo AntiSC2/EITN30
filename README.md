@@ -1,12 +1,12 @@
 # EITN30
 
 TODO:
-- Maximise throughput
-    - På ett håll med en radio med python: ca 2kBps
-    - Typ kopiera test och ändra så att det kan skicka samtidigt åt båda hållen
-- Change to C lib, setup
+- Maximise throughput: 1.2Mbps
 - System architecture
-- Individual goals
+    - Main thread
+    - Thread 1: IP -> radio (read IP packets, fragment and send over radio)
+    - Thread 2: radio -> IP (listen and receive on radio, assemble and write to TUN device)
+- Individual goals in Canvas: Friday Feb 10
 
 
 INDIVIDUAL GOAL IDEAS:
@@ -14,4 +14,3 @@ INDIVIDUAL GOAL IDEAS:
     - Link for download, many browsers offer to stream instead of download
     - Bandwidth
 2. Minimize latency / maximize bandwidth
-
