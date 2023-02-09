@@ -4,11 +4,11 @@
 #include <time.h>      // CLOCK_MONOTONIC_RAW, timespec, clock_gettime()
 #include <RF24.h>      // RF24, RF24_PA_LOW, delay()
 #include <chrono>
+#include "tuntap.hpp"
 
 using namespace std;
 
 RF24 radio(17, 0);
-float payload = 0.0;
 
 void setRole(); // prototype to set the node's role
 void master();  // prototype of the TX node's behavior
@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 
     // Let these addresses be used for the pair
     uint8_t address[2][6] = {"1Node", "2Node"};
-    
+
     cout << "Which radio is this? Enter '0' or '1'. Defaults to '0' ";
     string input;
     getline(cin, input);
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
     radio.setAutoAck(false);
 
     // set channel above wifi spectrum
-    radio.setChannel(105); 
+    radio.setChannel(105);
 
     // set the TX address of the RX node into the TX pipe
     radio.openWritingPipe(address[radioNumber]); // always uses pipe 0
@@ -86,21 +86,26 @@ void setRole()
 void master()
 {
     radio.stopListening(); // put radio in TX mode
+    TUNDevice device("tun0", mode::TUN, 2);
 
     chrono::time_point<chrono::system_clock> start, end;
 
     unsigned int packets_sent = 0;
     unsigned int failure = 0; // keep track of failures
     start = chrono::system_clock::now();
+
+    unsigned char payload[32];
+
     while (packets_sent < 30000) {
-        bool report = radio.write(&payload, sizeof(float)); // transmit & save the report
+        device.read(&payload, 32);
+
+        bool report = radio.write(&payload, sizeof(unsigned char) * 32); // transmit & save the report
 
         if (report) {
             // payload was delivered
-            //cout << "Transmission successful! Time to transmit = ";
+            cout << "Transmission successful!" << endl;
             //cout << timerEllapsed;                    // print the timer result
-            //cout << " us. Sent: " << payload << endl; // print payload sent
-            payload += 0.01;                          // increment float payload
+            cout << "Sent: " << payload[0] << endl; // print payload sent
             packets_sent += 1;
         }
         else {
@@ -130,7 +135,7 @@ void slave()
 
     unsigned int packets_received = 0;
     time_t startTimer = time(nullptr);       // start a timer
-    while (time(nullptr) - startTimer < 6) { // use 6 second timeout
+    while (time(nullptr) - startTimer < 30) { // use 30 second timeout
         uint8_t pipe;
         if (radio.available(&pipe)) {                        // is there a payload? get the pipe number that recieved it
             uint8_t bytes = radio.getPayloadSize();          // get the size of the payload
@@ -139,7 +144,7 @@ void slave()
             cout << " bytes on pipe " << (unsigned int)pipe; // print the pipe number
             cout << ": " << payload << endl;                 // print the payload's value
             startTimer = time(nullptr);                      // reset timer
-            packets_received += 1;        
+            packets_received += 1;
         }
     }
     cout << packets_received << " packets received." << endl;
