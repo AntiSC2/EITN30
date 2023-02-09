@@ -40,7 +40,7 @@ int main(int argc, char** argv)
     getline(cin, input);
     radioNumber = input.length() > 0 && (uint8_t)input[0] == 49;
 
-    radio.setPayloadSize(sizeof(payload)); // float datatype occupies 4 bytes
+    radio.setPayloadSize(32); // float datatype occupies 4 bytes
 
     radio.setPALevel(RF24_PA_MAX); // RF24_PA_MAX is default.
 
@@ -135,6 +135,7 @@ void slave()
 
     unsigned int packets_received = 0;
     time_t startTimer = time(nullptr);       // start a timer
+    unsigned char payload[32];
     while (time(nullptr) - startTimer < 30) { // use 30 second timeout
         uint8_t pipe;
         if (radio.available(&pipe)) {                        // is there a payload? get the pipe number that recieved it
@@ -142,7 +143,7 @@ void slave()
             radio.read(&payload, bytes);                     // fetch payload from FIFO
             cout << "Received " << (unsigned int)bytes;      // print the size of the payload
             cout << " bytes on pipe " << (unsigned int)pipe; // print the pipe number
-            cout << ": " << payload << endl;                 // print the payload's value
+            cout << ": " << payload[0] << endl;                 // print the payload's value
             startTimer = time(nullptr);                      // reset timer
             packets_received += 1;
         }
