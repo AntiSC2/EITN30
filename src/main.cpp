@@ -94,24 +94,36 @@ void master()
     unsigned int failure = 0; // keep track of failures
     start = chrono::system_clock::now();
 
-    unsigned char payload[32];
+    unsigned char payload[1024];
 
     while (packets_sent < 30000) {
-        device.read(&payload, 32);
+        size_t bytes_read = device.read(&payload, 1024);
+        size_t offset = 0;
 
-        bool report = radio.write(&payload, sizeof(unsigned char) * 32); // transmit & save the report
+        while (bytes_read > 0) {
+            size_t amount_of_bytes = bytes_read;
+            if (amount_of_bytes > 32) {
+                amount_of_bytes = 32;
+                bytes_read -= 32;
+            } else {
+                bytes_read = 0;
+            }
 
-        if (report) {
-            // payload was delivered
-            cout << "Transmission successful!" << endl;
-            //cout << timerEllapsed;                    // print the timer result
-            cout << "Sent: " << payload[0] << endl; // print payload sent
-            packets_sent += 1;
-        }
-        else {
-            // payload was not delivered
-            cout << "Transmission failed or timed out" << endl;
-            failure++;
+            bool report = radio.write(&payload[offset], amount_of_bytes); // transmit & save the report
+            if (report) {
+                // payload was delivered
+                cout << "Transmission successful!" << endl;
+                //cout << timerEllapsed;                    // print the timer result
+                cout << "Sent: " << payload[0] << endl; // print payload sent
+                packets_sent += 1;
+            }
+            else {
+                // payload was not delivered
+                cout << "Transmission failed or timed out" << endl;
+                failure++;
+            }
+
+            offset += amount_of_bytes;
         }
 
         // to make this example readable in the terminal
