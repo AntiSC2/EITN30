@@ -116,7 +116,8 @@ void master()
 
                 cout << "Sent: ";
                 for (int i = 0; i < amount_of_bytes; i++) {
-                    cout << hex << payload[offset + i];
+                    cout << setfill('0') << setw(2) << uppercase << hex
+                         << int(payload[offset + i]);
                 }
                 cout << endl;
                 packets_sent += 1;
@@ -159,7 +160,8 @@ void slave()
             cout << ": ";
 
             for (int i = 0; i < 32; i++) {
-                cout << hex << payload[0];
+                    cout << setfill('0') << setw(2) << uppercase << hex
+                         << int(payload[i]);
             }
 
             cout << endl;
