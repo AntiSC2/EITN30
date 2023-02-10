@@ -102,6 +102,7 @@ void master()
 
         while (bytes_read > 0) {
             size_t amount_of_bytes = bytes_read;
+
             if (amount_of_bytes > 32) {
                 amount_of_bytes = 32;
                 bytes_read -= 32;
@@ -111,10 +112,13 @@ void master()
 
             bool report = radio.write(&payload[offset], amount_of_bytes); // transmit & save the report
             if (report) {
-                // payload was delivered
                 cout << "Transmission successful!" << endl;
-                //cout << timerEllapsed;                    // print the timer result
-                cout << "Sent: " << payload[0] << endl; // print payload sent
+
+                cout << "Sent: ";
+                for (int i = 0; i < amount_of_bytes; i++) {
+                    cout << hex << payload[offset + i];
+                }
+                cout << endl;
                 packets_sent += 1;
             }
             else {
@@ -125,9 +129,6 @@ void master()
 
             offset += amount_of_bytes;
         }
-
-        // to make this example readable in the terminal
-        //delay(1000); // slow transmissions down by 1 second
     }
     end = chrono::system_clock::now();
     chrono::duration<double> elapsed_s = end - start;
@@ -148,15 +149,22 @@ void slave()
     unsigned int packets_received = 0;
     time_t startTimer = time(nullptr);       // start a timer
     unsigned char payload[32];
-    while (time(nullptr) - startTimer < 30) { // use 30 second timeout
+    while (time(nullptr) - startTimer < 240) { // use 240 second timeout
         uint8_t pipe;
-        if (radio.available(&pipe)) {                        // is there a payload? get the pipe number that recieved it
-            uint8_t bytes = radio.getPayloadSize();          // get the size of the payload
-            radio.read(&payload, bytes);                     // fetch payload from FIFO
-            cout << "Received " << (unsigned int)bytes;      // print the size of the payload
-            cout << " bytes on pipe " << (unsigned int)pipe; // print the pipe number
-            cout << ": " << payload[0] << endl;                 // print the payload's value
-            startTimer = time(nullptr);                      // reset timer
+        if (radio.available(&pipe)) {
+            uint8_t bytes = radio.getPayloadSize();
+            radio.read(&payload, bytes);
+            cout << "Received " << (unsigned int)bytes;
+            cout << " bytes on pipe " << (unsigned int)pipe;
+            cout << ": ";
+
+            for (int i = 0; i < 32; i++) {
+                cout << hex << payload[0];
+            }
+
+            cout << endl;
+
+            startTimer = time(nullptr);
             packets_received += 1;
         }
     }
