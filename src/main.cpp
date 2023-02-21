@@ -89,6 +89,7 @@ void master(Radio* radio)
 
 void slave(Radio* radio)
 {
+    radio->recieve();
 /*
     radio.startListening(); // put radio in RX mode
 

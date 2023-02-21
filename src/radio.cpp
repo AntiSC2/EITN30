@@ -1,4 +1,5 @@
 #include "radio.hpp"
+#include <chrono>
 #include <iostream>
 #include <iomanip>
 #include <exception>
@@ -54,4 +55,37 @@ void Radio::transmit(std::vector<uint8_t> data)
 std::vector<uint8_t> Radio::recieve()
 {
     m_radio.startListening();
+
+    chrono::time_point<chrono::system_clock> start, end;
+    size_t packets_received = 0;
+    uint8_t payload[32];
+    start = end = chrono::system_clock::now();
+    chrono::duration<double> elapsed_s = end - start;
+
+    while (elapsed_s.count() < 240) { // use 240 second timeout
+        uint8_t pipe;
+        if (m_radio.available(&pipe)) {
+            uint8_t bytes = m_radio.getPayloadSize();
+            m_radio.read(&payload, bytes);
+
+            if (m_verbose) {
+                cout << "Received " << (unsigned int)bytes;
+                cout << " bytes on pipe " << (unsigned int)pipe;
+                cout << ": ";
+                for (int i = 0; i < 32; i++) {
+                        cout << setfill('0') << setw(2) << uppercase << hex
+                            << int(payload[i]);
+                }
+                cout << endl;
+            }
+
+            packets_received += 1;
+            start = chrono::system_clock::now();
+        }
+        end = chrono::system_clock::now();
+        elapsed_s = end - start;
+    }
+
+    m_radio.stopListening();
+    return std::vector<uint8_t>();
 }
