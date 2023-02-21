@@ -71,7 +71,12 @@ std::vector<uint8_t> Radio::recieve()
     while (elapsed_s.count() < 240) { // use 240 second timeout
         uint8_t pipe;
         if (m_radio.available(&pipe)) {
-            uint8_t bytes = m_radio.getPayloadSize();
+            uint8_t bytes = m_radio.getDynamicPayloadSize();
+
+            if (bytes < 1) {
+                continue;
+            }
+
             m_radio.read(&payload, bytes);
 
             if (m_verbose) {
