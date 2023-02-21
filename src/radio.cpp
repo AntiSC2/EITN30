@@ -37,7 +37,7 @@ void Radio::transmit(std::vector<uint8_t> data)
     while (bytes_to_send > 0) {
         bool result = m_radio.write(data.data() + offset, std::min(bytes_to_send, size_t(32)));
 
-        if (!result) {
+	if (!result) {
             std::cout << "Transmission failed or timed out!" << std::endl;
             return;
         } else if (m_verbose) {
@@ -48,7 +48,11 @@ void Radio::transmit(std::vector<uint8_t> data)
         }
 
         offset += std::min(bytes_to_send, size_t(32));
-        bytes_to_send -= 32;
+	bytes_to_send -= std::min(bytes_to_send, size_t(32));
+    }
+
+    if (m_verbose) {
+        std::cout << std::endl;
     }
 }
 
@@ -72,7 +76,7 @@ std::vector<uint8_t> Radio::recieve()
                 std::cout << "Received " << (unsigned int)bytes;
                 std::cout << " bytes on pipe " << (unsigned int)pipe;
                 std::cout << ": ";
-                for (int i = 0; i < 32; i++) {
+                for (int i = 0; i < bytes; i++) {
 		    std::cout << std::setfill('0') << std::setw(2) << std::uppercase << std::hex
                               << int(payload[i]);
                 }
