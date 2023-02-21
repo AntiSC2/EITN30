@@ -73,7 +73,7 @@ std::vector<uint8_t> Radio::recieve()
             m_radio.read(&payload, bytes);
 
             if (m_verbose) {
-                std::cout << "Received " << std::dec << std::setw(0) << std::setfill('') << (unsigned int)bytes;
+                std::cout << "Received " << std::dec << std::setw(0) << std::setfill(' ') << (unsigned int)bytes;
                 std::cout << " bytes on pipe " << (unsigned int)pipe;
                 std::cout << ": ";
                 std::cout << std::setfill('0') << std::setw(2) << std::uppercase << std::hex;
