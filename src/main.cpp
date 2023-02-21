@@ -74,7 +74,7 @@ void master(Radio* radio)
     while (packets_sent < 30000) {
         size_t bytes_read = device.read(&payload, 1024);
         vector<uint8_t> data(payload, payload + bytes_read);
-	cout << "Length: " << data.size() << endl;
+
         radio->transmit(data);
         packets_sent += 1;
     }

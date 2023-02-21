@@ -11,7 +11,7 @@ Radio::Radio(int ce_pin, uint8_t tx_address[6], uint8_t rx_address[6], bool verb
         throw std::runtime_error("radio hardware not responding! ce_pin " + std::to_string(ce_pin));
     }
 
-    m_radio.enableDynamicPayloads();
+    //m_radio.enableDynamicPayloads();
     m_radio.setPALevel(RF24_PA_LOW);
     m_radio.setDataRate(RF24_2MBPS);
     m_radio.setAutoAck(false);
@@ -37,7 +37,7 @@ void Radio::transmit(std::vector<uint8_t> data)
     while (bytes_to_send > 0) {
         bool result = m_radio.write(data.data() + offset, std::min(bytes_to_send, size_t(32)));
 
-	if (!result) {
+	    if (!result) {
             std::cout << "Transmission failed or timed out!" << std::endl;
             return;
         } else if (m_verbose) {
@@ -48,7 +48,7 @@ void Radio::transmit(std::vector<uint8_t> data)
         }
 
         offset += std::min(bytes_to_send, size_t(32));
-	bytes_to_send -= std::min(bytes_to_send, size_t(32));
+	    bytes_to_send -= std::min(bytes_to_send, size_t(32));
     }
 
     if (m_verbose) {
