@@ -9,9 +9,9 @@
 
 using namespace std;
 
-void setRole(); // prototype to set the node's role
-void master();  // prototype of the TX node's behavior
-void slave();   // prototype of the RX node's behavior
+void setRole(Radio* radio); // prototype to set the node's role
+void master(Radio* radio);  // prototype of the TX node's behavior
+void slave(Radio* radio);   // prototype of the RX node's behavior
 
 // custom defined timer for evaluating transmission time in microseconds
 struct timespec startTimer, endTimer;
@@ -34,11 +34,11 @@ int main(int argc, char** argv)
 
     Radio radio(17, address[radioNumber], address[!radioNumber], true);
 
-    setRole(radio); // calls master() or slave() based on user input
+    setRole(&radio); // calls master() or slave() based on user input
     return 0;
 }
 
-void setRole(Radio radio)
+void setRole(Radio* radio)
 {
     string input = "";
     while (!input.length()) {
@@ -60,9 +60,8 @@ void setRole(Radio radio)
     }               // while
 } // setRole()
 
-void master(Radio radio)
+void master(Radio* radio)
 {
-    radio.stopListening(); // put radio in TX mode
     TUNDevice device("tun0", mode::TUN, 2);
 
     chrono::time_point<chrono::system_clock> start, end;
@@ -74,8 +73,8 @@ void master(Radio radio)
 
     while (packets_sent < 30000) {
         size_t bytes_read = device.read(&payload, 1024);
-        std::vector<uint8_t> data(payload, bytes_read);
-        radio.transmit(data);
+        std::vector<uint8_t> data(payload, payload + bytes_read);
+        radio->transmit(data);
         packets_sent += 1;
     }
     end = chrono::system_clock::now();
@@ -86,10 +85,9 @@ void master(Radio radio)
 
     cout << "Speed: " << speed_bps << " bps" << endl;
     cout << packets_sent << " packets sent." << endl;
-    cout << failure << " failures detected. Leaving TX role." << endl;
 }
 
-void slave(Radio radio)
+void slave(Radio* radio)
 {
 /*
     radio.startListening(); // put radio in RX mode
