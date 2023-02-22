@@ -6,9 +6,11 @@
 #include <exception>
 #include <algorithm>
 
-Radio::Radio(int ce_pin, uint8_t tx_address[6], uint8_t rx_address[6], bool verbose) : m_radio(ce_pin, 0)
+Radio::Radio(int ce_pin, uint8_t tx_address[6], uint8_t rx_address[6], bool verbose) : m_radio()
 {
-    if (!m_radio.begin()) {
+    int csn_pin = (ce_pin == 27) * 10;
+
+    if (!m_radio.begin(ce_pin, csn_pin)) {
         throw std::runtime_error("radio hardware not responding! ce_pin " + std::to_string(ce_pin));
     }
 
