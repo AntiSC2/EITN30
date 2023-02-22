@@ -48,7 +48,7 @@ void Radio::transmit(std::vector<uint8_t> data)
             }
         }
 
-        std::this_thread::sleep_for(std::chrono::microseconds(250));
+        std::this_thread::sleep_for(std::chrono::microseconds(500));
         offset += std::min(bytes_to_send, size_t(32));
         bytes_to_send -= std::min(bytes_to_send, size_t(32));
     }
