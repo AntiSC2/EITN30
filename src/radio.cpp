@@ -96,6 +96,7 @@ std::vector<uint8_t> Radio::recieve()
             }
 
             if (!found_start && bytes < 5) {
+                std::cout << payload[2] << std::endl;
                 continue;
             }
 
