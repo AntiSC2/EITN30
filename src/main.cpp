@@ -84,8 +84,10 @@ void radio_transmit(Radio* radio)
         size_t bytes_read = device.read(&payload, 1024);
         vector<uint8_t> data(payload, payload + bytes_read);
 
-        radio->transmit(data);
-        packets_sent += 1;
+        if (data.size() > 0) {
+            radio->transmit(data);
+            packets_sent += 1;
+        }
     }
     end = chrono::system_clock::now();
     chrono::duration<double> elapsed_s = end - start;
