@@ -33,8 +33,8 @@ int main(int argc, char** argv)
     getline(cin, input);
     radioNumber = input.length() > 0 && (uint8_t)input[0] == 49;
 
-    Radio radio_tx(17, address[radioNumber], address[radioNumber + 2], true);
-    Radio radio_rx(27, address[!radioNumber], address[!radioNumber + 2], true);
+    Radio radio_tx(17, address[radioNumber * 2], address[!radioNumber * 2], true);
+    Radio radio_rx(27, address[radioNumber * 2 + 1], address[!radioNumber * 2 + 1], true);
 
     //setRole(&radio_tx, &radio_rx); // calls master() or slave() based on user input
 
@@ -99,6 +99,7 @@ void radio_transmit(Radio* radio)
 
 void radio_recieve(Radio* radio)
 {
+
     radio->recieve();
 /*
     radio.startListening(); // put radio in RX mode
