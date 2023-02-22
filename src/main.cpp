@@ -5,6 +5,7 @@
 #include <time.h>      // CLOCK_MONOTONIC_RAW, timespec, clock_gettime()
 #include "radio.hpp"      // RF24, RF24_PA_LOW, delay()
 #include <chrono>
+#include <thread>
 #include "tuntap.hpp"
 
 using namespace std;
@@ -25,20 +26,27 @@ int main(int argc, char** argv)
     cout << argv[0] << endl;
 
     // Let these addresses be used for the pair
-    uint8_t address[2][6] = {"1Node", "2Node"};
+    uint8_t address[4][6] = {"1Node", "2Node", "3Node", "4Node"};
 
     cout << "Which radio is this? Enter '0' or '1'. Defaults to '0' ";
     string input;
     getline(cin, input);
     radioNumber = input.length() > 0 && (uint8_t)input[0] == 49;
 
-    Radio radio(17, address[radioNumber], address[!radioNumber], true);
+    Radio radio_tx(17, address[radioNumber], address[radioNumber + 2], true);
+    Radio radio_rx(27, address[!radioNumber], address[!radioNumber + 2], true);
 
-    setRole(&radio); // calls master() or slave() based on user input
+    //setRole(&radio_tx, &radio_rx); // calls master() or slave() based on user input
+
+    thread rx_thread (radio_recieve, &radio_rx);
+    rx_thread.detach();
+
+    radio_transmit(&radio_tx);
+
     return 0;
 }
 
-void setRole(Radio* radio)
+void setRole(Radio* radio_tx, Radio *radio_rx)
 {
     string input = "";
     while (!input.length()) {
@@ -60,7 +68,7 @@ void setRole(Radio* radio)
     }               // while
 } // setRole()
 
-void master(Radio* radio)
+void radio_transmit(Radio* radio)
 {
     TUNDevice device("tun0", mode::TUN, 2);
 
@@ -88,7 +96,7 @@ void master(Radio* radio)
     cout << packets_sent << " packets sent." << endl;
 }
 
-void slave(Radio* radio)
+void radio_recieve(Radio* radio)
 {
     radio->recieve();
 /*
