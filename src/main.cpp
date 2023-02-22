@@ -11,8 +11,8 @@
 using namespace std;
 
 void setRole(Radio* radio); // prototype to set the node's role
-void master(Radio* radio);  // prototype of the TX node's behavior
-void slave(Radio* radio);   // prototype of the RX node's behavior
+void radio_transmit(Radio* radio);  // prototype of the TX node's behavior
+void radio_recieve(Radio* radio);   // prototype of the RX node's behavior
 
 // custom defined timer for evaluating transmission time in microseconds
 struct timespec startTimer, endTimer;
@@ -46,6 +46,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
+/*
 void setRole(Radio* radio_tx, Radio *radio_rx)
 {
     string input = "";
@@ -67,7 +68,7 @@ void setRole(Radio* radio_tx, Radio *radio_rx)
         input = ""; // stay in the while loop
     }               // while
 } // setRole()
-
+*/
 void radio_transmit(Radio* radio)
 {
     TUNDevice device("tun0", mode::TUN, 2);
