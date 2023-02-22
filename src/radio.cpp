@@ -100,7 +100,7 @@ std::vector<uint8_t> Radio::recieve()
             }
 
             if (!found_start && (payload[2] != 8 || payload[3] != 0)) {
-                cout << payload[2] << endl;
+                std::cout << payload[2] << std::endl;
                 continue;
             } else if (!found_start) {
                 found_start = true;
