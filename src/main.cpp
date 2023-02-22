@@ -99,8 +99,9 @@ void radio_transmit(Radio* radio)
 
 void radio_recieve(Radio* radio)
 {
-
-    radio->recieve();
+    while (true) {
+        radio->recieve();
+    }
 /*
     radio.startListening(); // put radio in RX mode
 
