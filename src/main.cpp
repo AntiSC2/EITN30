@@ -100,7 +100,12 @@ void radio_transmit(Radio* radio)
 void radio_recieve(Radio* radio)
 {
     while (true) {
-        radio->recieve();
+        std::vector<uint8_t> ip_packet = radio->recieve();
+        cout << "IP Packet: ";
+        for (int i = 0; i < ip_packet.size(); i++) {
+            cout << setfill('0') << setw(2) << uppercase << std::hex << int(ip_packet[i]);
+        }
+        cout << endl;
     }
 /*
     radio.startListening(); // put radio in RX mode
