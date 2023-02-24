@@ -35,13 +35,14 @@ int main(int argc, char** argv)
 
     Radio radio_tx(17, address[radioNumber * 2], address[!radioNumber * 2 + 1], true);
     Radio radio_rx(27, address[radioNumber * 2 + 1], address[!radioNumber * 2], true);
+    TUNDevice device("tun0", mode::TUN, 2);
 
     //setRole(&radio_tx, &radio_rx); // calls master() or slave() based on user input
 
-    thread rx_thread (radio_recieve, &radio_rx);
+    thread rx_thread (radio_recieve, &radio_rx, &device);
     rx_thread.detach();
 
-    radio_transmit(&radio_tx);
+    radio_transmit(&radio_tx, &device);
 
     return 0;
 }
@@ -69,10 +70,8 @@ void setRole(Radio* radio_tx, Radio *radio_rx)
     }               // while
 } // setRole()
 */
-void radio_transmit(Radio* radio)
+void radio_transmit(Radio* radio, TUNDevice* device)
 {
-    TUNDevice device("tun0", mode::TUN, 2);
-
     chrono::time_point<chrono::system_clock> start, end;
 
     unsigned int packets_sent = 0;
@@ -81,7 +80,7 @@ void radio_transmit(Radio* radio)
     unsigned char payload[1024];
 
     while (packets_sent < 30000) {
-        size_t bytes_read = device.read(&payload, 1024);
+        size_t bytes_read = device->read(&payload, 1024);
         vector<uint8_t> data(payload, payload + bytes_read);
 
         if (data.size() > 0) {
@@ -99,10 +98,8 @@ void radio_transmit(Radio* radio)
     cout << packets_sent << " packets sent." << endl;
 }
 
-void radio_recieve(Radio* radio)
+void radio_recieve(Radio* radio, TUNDevice* device)
 {
-    TUNDevice device("tun0", mode::TUN, 2);
-
     while (true) {
         std::vector<uint8_t> ip_packet = radio->recieve();
 
@@ -113,7 +110,7 @@ void radio_recieve(Radio* radio)
             }
             cout << endl;
 
-            device.write(ip_packet.data(), ip_packet.size());
+            device->write(ip_packet.data(), ip_packet.size());
         }
     }
 /*
