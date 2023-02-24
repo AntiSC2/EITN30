@@ -12,3 +12,4 @@ CPackConfig.cmake
 CPackSourceConfig.cmake
 compile_commands.json
 .vscode/*
+build/*
