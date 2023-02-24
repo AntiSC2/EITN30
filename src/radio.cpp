@@ -73,6 +73,7 @@ std::vector<uint8_t> Radio::recieve()
     uint8_t payload[32];
     bool found_start = false;
     std::vector<uint8_t> ip_packet;
+    ip_packet.reserve(254);
     uint16_t total_ip_length = 0;
 
     start = end = std::chrono::system_clock::now();
