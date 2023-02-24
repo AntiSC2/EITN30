@@ -113,7 +113,7 @@ void radio_recieve(Radio* radio)
             }
             cout << endl;
 
-            device.write(ip_packet.data, ip_packet.size());
+            device.write(ip_packet.data(), ip_packet.size());
         }
     }
 /*
