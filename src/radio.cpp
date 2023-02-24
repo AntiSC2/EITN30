@@ -112,10 +112,10 @@ std::vector<uint8_t> Radio::recieve()
             } else if (found_start) {
                 ip_packet.insert(ip_packet.end(), payload, payload + bytes);
 
-                if (ip_packet.size() > total_ip_length) {
+                if (ip_packet.size() > total_ip_length + 4) {
                     std::cout << "Error, payload length exceeded specified length in header" << std::endl;
                     return std::vector<uint8_t>();
-                } else if (ip_packet.size() == total_ip_length) {
+                } else if (ip_packet.size() == total_ip_length + 4) {
                     return ip_packet;
                 }
             }
