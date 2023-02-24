@@ -107,6 +107,8 @@ std::vector<uint8_t> Radio::recieve()
                 found_start = true;
                 ip_packet.insert(ip_packet.end(), payload[4], payload[4] + bytes - 5);
                 total_ip_length = ((uint16_t)ip_packet[2] << 8) + (uint16_t)ip_packet[3];
+
+                std::cout << "Found start! Total length: " << total_ip_length << std::endl;
             } else if (found_start) {
                 ip_packet.insert(ip_packet.end(), payload, payload + bytes);
 
