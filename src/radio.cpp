@@ -57,7 +57,7 @@ void Radio::transmit(std::vector<uint8_t> data)
             }
         }
 
-        std::this_thread::sleep_for(std::chrono::microseconds(500));
+        std::this_thread::sleep_for(std::chrono::microseconds(300));
         offset += std::min(bytes_to_send, size_t(32));
         bytes_to_send -= std::min(bytes_to_send, size_t(32));
     }
@@ -73,7 +73,7 @@ std::vector<uint8_t> Radio::recieve()
     uint8_t payload[32];
     bool found_start = false;
     std::vector<uint8_t> ip_packet;
-    ip_packet.reserve(254);
+    ip_packet.reserve(258);
     uint16_t total_ip_length = 0;
 
     start = end = std::chrono::system_clock::now();

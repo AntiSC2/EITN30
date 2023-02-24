@@ -76,10 +76,10 @@ void setRole(Radio* radio_tx, Radio *radio_rx)
 */
 void radio_transmit(Radio* radio, TUNDevice* device)
 {
-    unsigned char payload[1024];
+    unsigned char payload[258];
 
     while (true) {
-        size_t bytes_read = device->read(&payload, 1024);
+        size_t bytes_read = device->read(&payload, 258);
         vector<uint8_t> data(payload, payload + bytes_read);
 
         if (data.size() > 0) {
@@ -103,7 +103,10 @@ void radio_recieve(Radio* radio, TUNDevice* device)
             }
 
             size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());
-            cout << "ip_packet sent to tun0, bytes: " << dec << bytes_written << endl;
+
+            if (verbose) {
+                cout << "ip_packet sent to tun0, bytes: " << dec << bytes_written << endl;
+            }
         }
     }
 /*
