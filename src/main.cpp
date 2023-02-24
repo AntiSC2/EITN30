@@ -101,13 +101,20 @@ void radio_transmit(Radio* radio)
 
 void radio_recieve(Radio* radio)
 {
+    TUNDevice device("tun0", mode::TUN, 2);
+
     while (true) {
         std::vector<uint8_t> ip_packet = radio->recieve();
-        cout << "IP Packet: ";
-        for (int i = 0; i < ip_packet.size(); i++) {
-            cout << setfill('0') << setw(2) << uppercase << std::hex << int(ip_packet[i]);
+
+        if (ip_packet.size() > 0) {
+            cout << "IP Packet: ";
+            for (int i = 0; i < ip_packet.size(); i++) {
+                cout << setfill('0') << setw(2) << uppercase << std::hex << int(ip_packet[i]);
+            }
+            cout << endl;
+
+            device.write(ip_packet.data, ip_packet.size());
         }
-        cout << endl;
     }
 /*
     radio.startListening(); // put radio in RX mode
