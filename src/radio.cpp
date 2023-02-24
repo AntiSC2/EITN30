@@ -26,10 +26,17 @@ Radio::Radio(int ce_pin, uint8_t tx_address[6], uint8_t rx_address[6], bool verb
     m_verbose = verbose;
 }
 
+void Radio::setListening(bool listen)
+{
+    if (listen) {
+        m_radio.startListening();
+    } else {
+        m_radio.stopListening();
+    }
+}
+
 void Radio::transmit(std::vector<uint8_t> data)
 {
-    m_radio.stopListening();
-
     if (m_verbose) {
         std::cout << "Starting transmission, data sent: " << std::endl;
     }
@@ -62,8 +69,6 @@ void Radio::transmit(std::vector<uint8_t> data)
 
 std::vector<uint8_t> Radio::recieve()
 {
-    m_radio.startListening();
-
     std::chrono::time_point<std::chrono::system_clock> start, end;
     uint8_t payload[32];
     bool found_start = false;

@@ -10,6 +10,8 @@
 
 using namespace std;
 
+bool verbose = false;
+
 void setRole(Radio* radio); // prototype to set the node's role
 void radio_transmit(Radio* radio, TUNDevice* device);  // prototype of the TX node's behavior
 void radio_recieve(Radio* radio, TUNDevice* device);   // prototype of the RX node's behavior
@@ -33,9 +35,11 @@ int main(int argc, char** argv)
     getline(cin, input);
     radioNumber = input.length() > 0 && (uint8_t)input[0] == 49;
 
-    Radio radio_tx(17, address[radioNumber * 2], address[!radioNumber * 2 + 1], true);
-    Radio radio_rx(27, address[radioNumber * 2 + 1], address[!radioNumber * 2], true);
+    Radio radio_tx(17, address[radioNumber * 2], address[!radioNumber * 2 + 1], verbose);
+    Radio radio_rx(27, address[radioNumber * 2 + 1], address[!radioNumber * 2], verbose);
     TUNDevice device("tun0", mode::TUN, 2);
+    radio_tx.setListening(false);
+    radio_rx.setListening(true);
 
     //setRole(&radio_tx, &radio_rx); // calls master() or slave() based on user input
 
@@ -72,30 +76,16 @@ void setRole(Radio* radio_tx, Radio *radio_rx)
 */
 void radio_transmit(Radio* radio, TUNDevice* device)
 {
-    chrono::time_point<chrono::system_clock> start, end;
-
-    unsigned int packets_sent = 0;
-    start = chrono::system_clock::now();
-
     unsigned char payload[1024];
 
-    while (packets_sent < 30000) {
+    while (true) {
         size_t bytes_read = device->read(&payload, 1024);
         vector<uint8_t> data(payload, payload + bytes_read);
 
         if (data.size() > 0) {
             radio->transmit(data);
-            packets_sent += 1;
         }
     }
-    end = chrono::system_clock::now();
-    chrono::duration<double> elapsed_s = end - start;
-
-    int total_payload_b = packets_sent * 32 * 8;
-    auto speed_bps = total_payload_b / elapsed_s.count();
-
-    cout << "Speed: " << speed_bps << " bps" << endl;
-    cout << packets_sent << " packets sent." << endl;
 }
 
 void radio_recieve(Radio* radio, TUNDevice* device)
@@ -104,11 +94,13 @@ void radio_recieve(Radio* radio, TUNDevice* device)
         vector<uint8_t> ip_packet = radio->recieve();
 
         if (ip_packet.size() > 0) {
-            cout << "IP Packet: ";
-            for (int i = 0; i < ip_packet.size(); i++) {
-                cout << setfill('0') << setw(2) << uppercase << hex << int(ip_packet[i]);
+            if (verbose) {
+                cout << "IP Packet: ";
+                for (int i = 0; i < ip_packet.size(); i++) {
+                    cout << setfill('0') << setw(2) << uppercase << hex << int(ip_packet[i]);
+                }
+                cout << endl;
             }
-            cout << endl;
 
             size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());
             cout << "ip_packet sent to tun0, bytes: " << dec << bytes_written << endl;
