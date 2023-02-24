@@ -101,16 +101,17 @@ void radio_transmit(Radio* radio, TUNDevice* device)
 void radio_recieve(Radio* radio, TUNDevice* device)
 {
     while (true) {
-        std::vector<uint8_t> ip_packet = radio->recieve();
+        vector<uint8_t> ip_packet = radio->recieve();
 
         if (ip_packet.size() > 0) {
             cout << "IP Packet: ";
             for (int i = 0; i < ip_packet.size(); i++) {
-                cout << setfill('0') << setw(2) << uppercase << std::hex << int(ip_packet[i]);
+                cout << setfill('0') << setw(2) << uppercase << hex << int(ip_packet[i]);
             }
             cout << endl;
 
-            device->write(ip_packet.data(), ip_packet.size());
+            size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());
+            cout << "ip_packet sent to tun0, bytes: " << dec << bytes_written << endl;
         }
     }
 /*
