@@ -11,8 +11,8 @@
 using namespace std;
 
 void setRole(Radio* radio); // prototype to set the node's role
-void radio_transmit(Radio* radio);  // prototype of the TX node's behavior
-void radio_recieve(Radio* radio);   // prototype of the RX node's behavior
+void radio_transmit(Radio* radio, TUNDevice* device);  // prototype of the TX node's behavior
+void radio_recieve(Radio* radio, TUNDevice* device);   // prototype of the RX node's behavior
 
 // custom defined timer for evaluating transmission time in microseconds
 struct timespec startTimer, endTimer;
