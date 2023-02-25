@@ -29,8 +29,8 @@ int main(int argc, char** argv)
     getline(cin, input);
     radioNumber = input.length() > 0 && (uint8_t)input[0] == 49;
 
-    Radio radio_tx(17, address[radioNumber * 2], address[!radioNumber * 2 + 1], verbose);
-    Radio radio_rx(27, address[radioNumber * 2 + 1], address[!radioNumber * 2], verbose);
+    Radio radio_tx(17, address[!radioNumber + 1], address[radioNumber], verbose);
+    Radio radio_rx(27, address[!radioNumber], address[radioNumber + 1], verbose);
     TUNDevice device("tun0", mode::TUN, 2);
     radio_tx.setListening(false);
     radio_rx.setListening(true);
