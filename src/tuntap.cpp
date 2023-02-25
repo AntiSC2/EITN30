@@ -20,10 +20,10 @@ TUNDevice::TUNDevice(std::string name, mode mode, int flags) {
 
     switch (mode) {
         case mode::TUN:
-            ifr.ifr_flags = IFF_TUN;
+            ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
             break;
         case mode::TAP:
-            ifr.ifr_flags = IFF_TAP;
+            ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
             break;
     }
 

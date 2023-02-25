@@ -74,7 +74,7 @@ std::vector<uint8_t> Radio::recieve()
     ip_packet.reserve(258);
     uint16_t total_ip_length = 0;
 
-    while (true) { // use 10 second timeout
+    while (true) {
         uint8_t pipe;
         if (m_radio.available(&pipe)) {
             uint8_t bytes = m_radio.getDynamicPayloadSize();
@@ -96,16 +96,14 @@ std::vector<uint8_t> Radio::recieve()
                 std::cout << std::endl;
             }
 
-            if (!found_start && bytes < 5) {
+            if (!found_start && bytes < 20) {
                 continue;
             }
 
-            if (!found_start && (payload[2] != 8 || payload[3] != 0)) {
-                continue;
-            } else if (!found_start) {
+            if (!found_start && (payload[0] & 0b11110000 == 64)) {
                 found_start = true;
                 ip_packet.insert(ip_packet.end(), payload, payload + bytes);
-                total_ip_length = ((uint16_t)ip_packet[6] << 8) + (uint16_t)ip_packet[7];
+                total_ip_length = ((uint16_t)ip_packet[3] << 8) + (uint16_t)ip_packet[4];
 
                 if (m_verbose) {
                     std::cout << "Found start! Total length: " << total_ip_length << std::endl;
@@ -113,12 +111,14 @@ std::vector<uint8_t> Radio::recieve()
             } else if (found_start) {
                 ip_packet.insert(ip_packet.end(), payload, payload + bytes);
 
-                if (ip_packet.size() > total_ip_length + 4) {
+                if (ip_packet.size() > total_ip_length) {
                     std::cout << "Error, payload length exceeded specified length in header" << std::endl;
                     return std::vector<uint8_t>();
-                } else if (ip_packet.size() == total_ip_length + 4) {
+                } else if (ip_packet.size() == total_ip_length) {
                     return ip_packet;
                 }
+            } else {
+                continue;
             }
         }
     }
