@@ -19,7 +19,7 @@ Radio::Radio(int ce_pin, uint8_t tx_address[6], uint8_t rx_address[6], bool verb
     m_radio.setDataRate(RF24_2MBPS);
     m_radio.setAutoAck(true);
 
-    if (tx_address[0] == '1' || tx_address[0] == '3') {
+    if ((rx_address[0] == '1' && tx_address[0] == '3') || (rx_address[0] == '3' && tx_address[0] == '1')) {
         m_radio.setChannel(120);
     } else {
         m_radio.setChannel(100);
