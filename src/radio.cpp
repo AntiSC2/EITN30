@@ -103,7 +103,7 @@ std::vector<uint8_t> Radio::recieve()
             if (!found_start && (int(payload[0] & 0b11110000) == 64)) {
                 found_start = true;
                 ip_packet.insert(ip_packet.end(), payload, payload + bytes);
-                total_ip_length = ((uint16_t)ip_packet[3] << 8) + (uint16_t)ip_packet[4];
+                total_ip_length = ((uint16_t)ip_packet[2] << 8) + (uint16_t)ip_packet[3];
 
                 if (m_verbose) {
                     std::cout << "Found start! Total length: " << total_ip_length << std::endl;
