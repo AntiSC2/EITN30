@@ -96,11 +96,11 @@ std::vector<uint8_t> Radio::recieve()
                 std::cout << std::endl;
             }
 
-            if (!found_start && bytes < 20) {
+            if (!found_start && bytes < 5) {
                 continue;
             }
 
-            if (!found_start && (payload[0] & 0b11110000 == 64)) {
+            if (!found_start && (int(payload[0] & 0b11110000) == 64)) {
                 found_start = true;
                 ip_packet.insert(ip_packet.end(), payload, payload + bytes);
                 total_ip_length = ((uint16_t)ip_packet[3] << 8) + (uint16_t)ip_packet[4];
