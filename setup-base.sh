@@ -1,5 +1,5 @@
 sudo ip tuntap add mode tun dev tun0
-sudo ip addr add 10.0.0.1/24 peer 10.0.0.2 dev tun0
+sudo ip addr add 10.0.0.1/24 dev tun0
 sudo ip link set dev tun0 mtu 254
 sudo ip link set tun0 up
 

@@ -1,3 +1,4 @@
+#pragma once
 #include <RF24.h>
 #include <string>
 #include <vector>
