@@ -14,7 +14,7 @@ Radio::Radio(int ce_pin, uint8_t tx_address[6], uint8_t rx_address[6], bool verb
         throw std::runtime_error("radio hardware not responding! ce_pin " + std::to_string(ce_pin));
     }
 
-    m_radio.enableDynamicPayloads();
+    m_radio.disableDynamicPayloads();
     m_radio.setPALevel(RF24_PA_LOW);
     m_radio.setDataRate(RF24_2MBPS);
     m_radio.setAutoAck(true);
@@ -77,11 +77,7 @@ std::vector<uint8_t> Radio::recieve()
     while (true) {
         uint8_t pipe;
         if (m_radio.available(&pipe)) {
-            uint8_t bytes = m_radio.getDynamicPayloadSize();
-
-            if (bytes < 1) {
-                continue;
-            }
+            uint8_t bytes = m_radio.getPayloadSize();
 
             m_radio.read(&payload, bytes);
 
@@ -96,10 +92,6 @@ std::vector<uint8_t> Radio::recieve()
                 std::cout << std::endl;
             }
 
-            if (!found_start && bytes < 5) {
-                continue;
-            }
-
             if (!found_start && (int(payload[0] & 0b11110000) == 64)) {
                 found_start = true;
                 ip_packet.insert(ip_packet.end(), payload, payload + bytes);
@@ -112,6 +104,7 @@ std::vector<uint8_t> Radio::recieve()
                 ip_packet.insert(ip_packet.end(), payload, payload + bytes);
 
                 if (ip_packet.size() >= total_ip_length) {
+                    ip_packet.resize(total_ip_length);
                     return ip_packet;
                 }
             } else {
