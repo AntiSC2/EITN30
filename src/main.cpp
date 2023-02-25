@@ -12,10 +12,10 @@ using namespace std;
 
 bool verbose = false;
 
-void read_from_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>& send_queue);
-void write_to_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>& write_queue);
-void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>& send_queue);
-void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>& write_queue);
+void read_from_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* send_queue);
+void write_to_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* write_queue);
+void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue);
+void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue);
 
 int main(int argc, char** argv)
 {
@@ -38,19 +38,19 @@ int main(int argc, char** argv)
     LockingQueue<vector<uint8_t>> send_queue;
     LockingQueue<vector<uint8_t>> write_queue;
 
-    thread read_thread(read_from_tun, &device, send_queue);
-    thread write_thread(write_to_tun, &device, write_queue);
-    thread rx_thread(radio_recieve, &radio_rx, write_queue);
+    thread read_thread(read_from_tun, &device, &send_queue);
+    thread write_thread(write_to_tun, &device, &write_queue);
+    thread rx_thread(radio_recieve, &radio_rx, &write_queue);
     read_thread.detach();
     write_thread.detach();
     rx_thread.detach();
 
-    radio_transmit(&radio_tx, send_queue);
+    radio_transmit(&radio_tx, &send_queue);
 
     return 0;
 }
 
-void read_from_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>& send_queue)
+void read_from_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* send_queue)
 {
     unsigned char payload[258];
 
@@ -59,17 +59,17 @@ void read_from_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>& send_queue)
         vector<uint8_t> data(payload, payload + bytes_read);
 
         if (data.size() > 0) {
-            send_queue.push(data);
+            send_queue->push(data);
         }
     }
 }
 
-void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>& write_queue)
+void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
 {
     while (true) {
         std::vector<uint8_t> ip_packet;
 
-        write_queue.waitAndPop(ip_packet);
+        write_queue->waitAndPop(ip_packet);
 
         size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());
 
@@ -79,18 +79,18 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>& write_queue)
     }
 }
 
-void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>& send_queue)
+void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 {
     while (true) {
         std::vector<uint8_t> data;
 
-        send_queue.waitAndPop(data);
+        send_queue->waitAndPop(data);
 
         radio->transmit(data);
     }
 }
 
-void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>& write_queue)
+void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
 {
     while (true) {
         vector<uint8_t> ip_packet = radio->recieve();
@@ -103,7 +103,7 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>& write_queue)
                 }
                 cout << endl;
             }
-            write_queue.push(ip_packet);
+            write_queue->push(ip_packet);
         }
     }
 }
