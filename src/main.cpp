@@ -52,10 +52,10 @@ int main(int argc, char** argv)
 
 void read_from_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* send_queue)
 {
-    unsigned char payload[258];
+    unsigned char payload[1024];
 
     while (true) {
-        size_t bytes_read = device->read(&payload, 258);
+        size_t bytes_read = device->read(&payload, 1024);
         vector<uint8_t> data(payload, payload + bytes_read);
 
         if (data.size() > 0) {

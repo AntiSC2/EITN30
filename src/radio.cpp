@@ -57,7 +57,6 @@ void Radio::transmit(std::vector<uint8_t> data)
             }
         }
 
-        std::this_thread::sleep_for(std::chrono::microseconds(300));
         offset += std::min(bytes_to_send, size_t(32));
         bytes_to_send -= std::min(bytes_to_send, size_t(32));
     }
@@ -69,17 +68,13 @@ void Radio::transmit(std::vector<uint8_t> data)
 
 std::vector<uint8_t> Radio::recieve()
 {
-    std::chrono::time_point<std::chrono::system_clock> start, end;
     uint8_t payload[32];
     bool found_start = false;
     std::vector<uint8_t> ip_packet;
     ip_packet.reserve(258);
     uint16_t total_ip_length = 0;
 
-    start = end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_s = end - start;
-
-    while (elapsed_s.count() < 10) { // use 10 second timeout
+    while (true) { // use 10 second timeout
         uint8_t pipe;
         if (m_radio.available(&pipe)) {
             uint8_t bytes = m_radio.getDynamicPayloadSize();
@@ -125,11 +120,7 @@ std::vector<uint8_t> Radio::recieve()
                     return ip_packet;
                 }
             }
-
-            start = std::chrono::system_clock::now();
         }
-        end = std::chrono::system_clock::now();
-        elapsed_s = end - start;
     }
 
     return std::vector<uint8_t>();;
