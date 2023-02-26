@@ -39,34 +39,3 @@ void Radio::setListening(bool listen)
         m_radio.stopListening();
     }
 }
-
-void Radio::transmit(std::vector<uint8_t> data)
-{
-    if (m_verbose) {
-        std::cout << "Starting transmission, data sent: " << std::endl;
-    }
-
-    size_t bytes_to_send = data.size();
-    size_t offset = 0;
-
-    while (bytes_to_send > 0) {
-        bool result = m_radio.write(data.data() + offset, std::min(bytes_to_send, size_t(32)));
-
-        if (!result) {
-            std::cout << "Transmission failed or timed out!" << std::endl;
-            return;
-        } else if (m_verbose) {
-            std::cout << std::setfill('0') << std::setw(2) << std::uppercase << std::hex;
-            for (int i = 0; i < std::min(bytes_to_send, size_t(32)); i++) {
-                std::cout << int(data[offset + i]);
-            }
-        }
-
-        offset += std::min(bytes_to_send, size_t(32));
-        bytes_to_send -= std::min(bytes_to_send, size_t(32));
-    }
-
-    if (m_verbose) {
-        std::cout << std::endl;
-    }
-}

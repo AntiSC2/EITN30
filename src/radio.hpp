@@ -11,7 +11,38 @@ public:
     Radio(int ce_pin, uint8_t tx_address[6], uint8_t rx_address[6], bool verbose=false);
 
     void setListening(bool listen);
-    void transmit(std::vector<uint8_t> data);
+
+    inline void transmit(std::vector<uint8_t> &data)
+    {
+        if (m_verbose) {
+            std::cout << "Starting transmission, data sent: " << std::endl;
+        }
+
+        size_t bytes_to_send = data.size();
+        size_t offset = 0;
+
+        while (bytes_to_send > 0) {
+            bool result = m_radio.write(data.data() + offset, std::min(bytes_to_send, size_t(32)));
+
+            if (!result) {
+                std::cout << "Transmission failed or timed out!" << std::endl;
+                return;
+            } else if (m_verbose) {
+                std::cout << std::setfill('0') << std::setw(2) << std::uppercase << std::hex;
+                for (int i = 0; i < std::min(bytes_to_send, size_t(32)); i++) {
+                    std::cout << int(data[offset + i]);
+                }
+            }
+
+            offset += std::min(bytes_to_send, size_t(32));
+            bytes_to_send -= std::min(bytes_to_send, size_t(32));
+        }
+
+        if (m_verbose) {
+            std::cout << std::endl;
+        }
+    }
+
     inline void recieve(LockingQueue<std::vector<uint8_t>>* write_queue)
     {
         uint8_t payload[32];
