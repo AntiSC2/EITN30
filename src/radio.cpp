@@ -71,51 +71,27 @@ void Radio::transmit(std::vector<uint8_t> data)
     }
 }
 
-std::vector<uint8_t> Radio::recieve()
+void Radio::recieve(LockingQueue<std::vector<uint8_t>>* write_queue)
 {
     uint8_t payload[32];
-    bool found_start = false;
-    std::vector<uint8_t> ip_packet;
-    ip_packet.reserve(258);
-    uint16_t total_ip_length = 0;
+    uint8_t pipe;
+    if (m_radio.available(&pipe)) {
+        uint8_t bytes = m_radio.getPayloadSize();
 
-    while (true) {
-        uint8_t pipe;
-        if (m_radio.available(&pipe)) {
-            uint8_t bytes = m_radio.getPayloadSize();
+        m_radio.read(&payload, bytes);
 
-            m_radio.read(&payload, bytes);
-
-            if (m_verbose) {
-                std::cout << "Received " << std::dec << std::setw(0) << std::setfill(' ') << (unsigned int)bytes;
-                std::cout << " bytes on pipe " << (unsigned int)pipe;
-                std::cout << ": ";
-                std::cout << std::setfill('0') << std::setw(2) << std::uppercase << std::hex;
-                for (int i = 0; i < bytes; i++) {
-                    std::cout << int(payload[i]);
-                }
-                std::cout << std::endl;
+        if (m_verbose) {
+            std::cout << "Received " << std::dec << std::setw(0) << std::setfill(' ') << 32;
+            std::cout << " bytes on pipe " << (unsigned int)pipe;
+            std::cout << ": ";
+            std::cout << std::setfill('0') << std::setw(2) << std::uppercase << std::hex;
+            for (int i = 0; i < bytes; i++) {
+                std::cout << int(payload[i]);
             }
-
-            if (!found_start && (int(payload[0] & 0b11110000) == 64)) {
-                found_start = true;
-                ip_packet.insert(ip_packet.end(), payload, payload + bytes);
-                total_ip_length = ((uint16_t)ip_packet[2] << 8) + (uint16_t)ip_packet[3];
-
-                if (m_verbose) {
-                    std::cout << "Found start! Total length: " << total_ip_length << std::endl;
-                }
-            } else if (found_start) {
-                ip_packet.insert(ip_packet.end(), payload, payload + bytes);
-
-                if (ip_packet.size() >= total_ip_length) {
-                    return ip_packet;
-                }
-            } else {
-                continue;
-            }
+            std::cout << std::endl;
         }
-    }
 
-    return std::vector<uint8_t>();;
+        std::vector<uint8_t> data(payload, payload+32);
+        write_queue->push(data);
+    }
 }

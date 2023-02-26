@@ -67,9 +67,26 @@ void read_from_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* send_queue)
 void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
 {
     while (true) {
+        std::vector<uint8_t> payload;
+        bool found_start = false;
         std::vector<uint8_t> ip_packet;
+        uint16_t total_ip_length = 0;
 
-        write_queue->waitAndPop(ip_packet);
+        while(!found_start || ip_packet.size() < total_ip_length) {
+            write_queue->waitAndPop(payload);
+
+            if(!found_start && int(payload[0] & 0b11110000) == 64) {
+                found_start = true;
+                ip_packet.insert(ip_packet.end(), payload);
+                total_ip_length = ((uint16_t)ip_packet[2] << 8) + (uint16_t)ip_packet[3];
+
+                if (verbose) {
+                    std::cout << "Found start! Total length: " << total_ip_length << std::endl;
+                }
+            } else if(found_start) {
+                ip_packet.insert(ip_packet.end(), payload);
+            }
+        }
 
         size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());
 
@@ -93,17 +110,6 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
 {
     while (true) {
-        vector<uint8_t> ip_packet = radio->recieve();
-
-        if (ip_packet.size() > 0) {
-            if (verbose) {
-                cout << "IP Packet: ";
-                for (int i = 0; i < ip_packet.size(); i++) {
-                    cout << setfill('0') << setw(2) << uppercase << hex << int(ip_packet[i]);
-                }
-                cout << endl;
-            }
-            write_queue->push(ip_packet);
-        }
+        radio->recieve(write_queue);
     }
 }
