@@ -77,14 +77,14 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
 
             if(!found_start && int(payload[0] & 0b11110000) == 64) {
                 found_start = true;
-                ip_packet.insert(ip_packet.end(), payload);
+                ip_packet.insert(ip_packet.end(), payload.begin(), payload.end());
                 total_ip_length = ((uint16_t)ip_packet[2] << 8) + (uint16_t)ip_packet[3];
 
                 if (verbose) {
                     std::cout << "Found start! Total length: " << total_ip_length << std::endl;
                 }
             } else if(found_start) {
-                ip_packet.insert(ip_packet.end(), payload);
+                ip_packet.insert(ip_packet.end(), payload.begin(), payload.end());
             }
         }
 
