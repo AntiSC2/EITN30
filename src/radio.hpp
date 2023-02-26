@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "lockingqueue.hpp"
+#include <iostream>
 
 class Radio {
 public:
