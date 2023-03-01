@@ -18,7 +18,7 @@ Radio::Radio(int ce_pin, uint8_t tx_address[6], uint8_t rx_address[6], bool verb
     m_radio.setPALevel(RF24_PA_LOW);
     m_radio.setDataRate(RF24_2MBPS);
     m_radio.setAutoAck(true);
-    m_radio.setAutoAck(0, 0);
+    //m_radio.setAutoAck(0, 0);
     m_radio.setCRCLength(RF24_CRC_8);
 
     if ((rx_address[0] == '1' && tx_address[0] == '3') || (rx_address[0] == '3' && tx_address[0] == '1')) {
