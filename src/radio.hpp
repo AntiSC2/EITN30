@@ -22,11 +22,20 @@ public:
         size_t offset = 0;
 
         while (bytes_to_send > 0) {
-            bool result = m_radio.write(data.data() + offset, std::min(bytes_to_send, size_t(32)));
+            bool result = m_radio.writeFast(data.data() + offset, std::min(bytes_to_send, size_t(32)));
 
             if (!result) {
-                std::cout << "Transmission failed or timed out!" << std::endl;
-                return;
+                m_radio.txStandBy();
+                result = m_radio.writeFast(data.data() + offset, std::min(bytes_to_send, size_t(32)));
+
+                if (m_verbose) {
+                    std::cout << "Retrying write!" << std::endl;
+                }
+
+                if (!result) {
+                    std::cout << "Transmission failed or timed out!" << std::endl;
+                    return;
+                }
             } else if (m_verbose) {
                 std::cout << std::setfill('0') << std::setw(2) << std::uppercase << std::hex;
                 for (int i = 0; i < std::min(bytes_to_send, size_t(32)); i++) {
