@@ -4,5 +4,5 @@ sudo ip link set dev tun0 mtu 500
 sudo ip link set tun0 up
 
 sudo iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
-sudo iptables -A FORWARD -i wlan0 -o tun0 -m limit --limit 4000/sec -m state --state RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -A FORWARD -i wlan0 -o tun0 -m limit --limit 500/sec -m state --state RELATED,ESTABLISHED -j ACCEPT
 sudo iptables -A FORWARD -i tun0 -o wlan0 -j ACCEPT
