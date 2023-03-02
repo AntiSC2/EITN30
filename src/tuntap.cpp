@@ -48,6 +48,7 @@ TUNDevice::~TUNDevice() {
 size_t TUNDevice::read(void* buffer, size_t byte_count)
 {
     ssize_t result = ::read(m_fd, buffer, byte_count);
+    buffer[result > 0 ? result : 0] = '\0';
 
     if (result < 0) {
         throw std::runtime_error("Bytes read returned negative number");

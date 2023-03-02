@@ -21,7 +21,6 @@ int main(int argc, char** argv)
 {
     bool radioNumber = 1;
 
-    cout << argv[0] << endl;
     uint8_t address[4][6] = {"1Node", "2Node", "3Node", "4Node"};
 
     cout << "Which radio is this? Enter '0' or '1'. Defaults to '0' ";
