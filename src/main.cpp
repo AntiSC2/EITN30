@@ -55,6 +55,7 @@ void read_from_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* send_queue)
 
     while (true) {
         size_t bytes_read = device->read(&payload, 1024);
+        payload[bytes_read] = '\0';
         vector<uint8_t> data(payload, payload + bytes_read);
 
         if (data.size() > 0) {
