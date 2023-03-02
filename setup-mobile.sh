@@ -4,5 +4,3 @@ sudo ip link set dev tun0 mtu 500
 sudo ip link set tun0 up
 
 sudo ip route add default via 10.0.0.1 dev tun0
-sudo iptables -A INPUT -i tun0 -m limit --limit 100/s -j ACCEPT
-sudo iptables -A INPUT -i tun0 -j REJECT
