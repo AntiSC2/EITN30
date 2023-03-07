@@ -33,8 +33,8 @@ int main(int argc, char** argv)
     getline(cin, input);
     radioNumber = input.length() > 0 && (uint8_t)input[0] == 49;
 
-    Radio radio_tx(17, address[!radioNumber + 1], address[radioNumber], verbose);
-    Radio radio_rx(27, address[!radioNumber], address[radioNumber + 1], verbose);
+    Radio radio_tx(17, address[!radioNumber + 1], address[radioNumber], VERBOSE);
+    Radio radio_rx(27, address[!radioNumber], address[radioNumber + 1], VERBOSE);
     TUNDevice device("tun0", mode::TUN, 2);
     radio_tx.setListening(false);
     radio_rx.setListening(true);
@@ -85,7 +85,7 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
                 ip_packet.insert(ip_packet.end(), payload.begin(), payload.end());
                 total_ip_length = ((uint16_t)ip_packet[2] << 8) + (uint16_t)ip_packet[3];
 
-                if (verbose) {
+                if (VERBOSE) {
                     std::cout << "Found start! Total length: " << total_ip_length << std::endl;
                 }
             } else if(found_start) {
@@ -95,7 +95,7 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
 
         size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());
 
-        if (verbose) {
+        if (VERBOSE) {
             cout << "ip_packet sent to tun0, bytes: " << dec << bytes_written << endl;
         }
     }
