@@ -7,10 +7,15 @@
 #include <thread>
 #include "lockingqueue.hpp"
 #include "tuntap.hpp"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 using namespace std;
 
-bool verbose = false;
+#define VERBOSE false
+#define DEV     false
+#define BASE    false
 
 void read_from_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* send_queue);
 void write_to_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* write_queue);
@@ -98,18 +103,76 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
 
 void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 {
+    #if DEV == true
+        struct in_addr inp;
+        struct sockaddr_in address;
+        address.sin_family = AF_INET;
+        int sockfd = socket(AF_INET, SOCK_DGRAM, 0); //IPv4, UDP, IP
+        #if BASE == true
+            inet_aton("192.168.131.132", &inp);
+            address.sin_port = htons(4000); //UDP port 4000
+            address.sin_addr.s_addr = inp;
+            int addrlen = sizeof(address);
+            //int setsockopt(int sockfd, int level, int optname,  const void *optval, socklen_t optlen);
+            bind(sockfd, (struct sockaddr_in*) address, addrlen);
+            listen(sockfd, 1); //backlog 1
+            int new_socket = accept(sockfd, (struct sockaddr*)&address, &addrlen);
+        #else
+            inet_aton("192.168.131.172", &inp);
+            address.sin_port = htons(4001); //UDP port 4001
+            address.sin_addr.s_addr = inp;
+            int addrlen = sizeof(address);
+            connect(sockfd, (struct sockaddr*)&address, addrlen);
+        #endif
+    #endif
+
     while (true) {
         std::vector<uint8_t> data;
 
         send_queue->waitAndPop(data);
-
-        radio->transmit(data);
+        #if DEV == true
+            write(new_socket, (const void*) data.data(), data.size());
+        #else
+            radio->transmit(data);
+        #endif
     }
 }
 
 void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
 {
+        #if DEV == true
+        struct in_addr inp;
+        struct sockaddr_in address;
+        address.sin_family = AF_INET;
+        int sockfd = socket(AF_INET, SOCK_DGRAM, 0); //IPv4, UDP, IP
+        #if BASE == true
+            inet_aton("192.168.131.132", &inp);
+            address.sin_port = htons(4001); //UDP port 4001
+            address.sin_addr.s_addr = inp;
+            int addrlen = sizeof(address);
+            //int setsockopt(int sockfd, int level, int optname,  const void *optval, socklen_t optlen);
+            bind(sockfd, (struct sockaddr_in*) address, addrlen);
+            listen(sockfd, 1); //backlog 1
+            int new_socket = accept(sockfd, (struct sockaddr*)&address, &addrlen);
+        #else
+            inet_aton("192.168.131.172", &inp);
+            address.sin_port = htons(4000); //UDP port 4000
+            address.sin_addr.s_addr = inp;
+            int addrlen = sizeof(address);
+            connect(sockfd, (struct sockaddr*)&address, addrlen);
+        #endif
+    #endif
+
     while (true) {
-        radio->recieve(write_queue);
+        #if DEV == true
+            uint8_t payload[500];
+            ssize_t bytes = read(new_socket, payload, 500);
+            if(bytes > 0) {
+                std::vector<uint8_t> data(payload, payload+bytes);
+                write_queue->push(data);
+            }
+        #else
+            radio->recieve(write_queue);
+        #endif
     }
 }
