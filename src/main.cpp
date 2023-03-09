@@ -128,7 +128,8 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 
         send_queue->waitAndPop(data);
         #if DEV == true
-            sendto(sockfd, (const void*) data.data(), data.size(), MSG_CONFIRM, (const struct sockaddr*) &sendto_address, sizeof(sendto_address));
+            ssize_t bytes = sendto(sockfd, (const void*) data.data(), data.size(), MSG_CONFIRM, (const struct sockaddr*) &sendto_address, sizeof(sendto_address));
+            cout << "Sending data: " << bytes << endl;
         #else
             radio->transmit(data);
         #endif
