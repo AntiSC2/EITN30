@@ -66,7 +66,7 @@ public:
         uint8_t payload[32];
         uint8_t pipe;
         if (m_radio.available(&pipe)) {
-            uint8_t bytes = m_radio.getPayloadSize();
+            uint8_t bytes = m_radio.getDynamicPayloadSize();
 
             m_radio.read(&payload, bytes);
 
