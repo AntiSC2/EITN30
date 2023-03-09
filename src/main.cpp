@@ -110,7 +110,7 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
         address.sin_family = AF_INET;
         int sockfd = socket(AF_INET, SOCK_DGRAM, 0); //IPv4, UDP, IP
         #if BASE == true
-            inet_aton("192.168.131.132", &inp);
+            inet_aton("192.168.131.172", &inp);
             address.sin_port = htons(4000); //UDP port 4000
             address.sin_addr = inp;
             int addrlen = sizeof(address);
@@ -119,11 +119,13 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
             listen(sockfd, 1); //backlog 1
             int new_socket = accept(sockfd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
         #else
-            inet_aton("192.168.131.172", &inp);
+            inet_aton("192.168.131.132", &inp);
             address.sin_port = htons(4001); //UDP port 4001
             address.sin_addr = inp;
             int addrlen = sizeof(address);
-            connect(sockfd, (struct sockaddr*)&address, addrlen);
+            if((int err = connect(sockfd, (struct sockaddr*)&address, addrlen)) < 0) {
+                cout << "did not connect: mobile, transmit" << endl;
+            };
         #endif
     #endif
 
@@ -151,7 +153,7 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
         address.sin_family = AF_INET;
         int sockfd = socket(AF_INET, SOCK_DGRAM, 0); //IPv4, UDP, IP
         #if BASE == true
-            inet_aton("192.168.131.132", &inp);
+            inet_aton("192.168.131.172", &inp);
             address.sin_port = htons(4001); //UDP port 4001
             address.sin_addr = inp;
             int addrlen = sizeof(address);
@@ -160,11 +162,13 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
             listen(sockfd, 1); //backlog 1
             int new_socket = accept(sockfd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
         #else
-            inet_aton("192.168.131.172", &inp);
+            inet_aton("192.168.131.132", &inp);
             address.sin_port = htons(4000); //UDP port 4000
             address.sin_addr = inp;
             int addrlen = sizeof(address);
-            connect(sockfd, (struct sockaddr*)&address, addrlen);
+            if((int err = connect(sockfd, (struct sockaddr*)&address, addrlen)) < 0) {
+                cout << "did not connect: mobile, receive" << endl;
+            };
         #endif
     #endif
 
