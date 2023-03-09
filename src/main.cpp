@@ -22,7 +22,7 @@ void read_from_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* send_queue)
 void write_to_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* write_queue);
 void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue);
 void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue);
-int setup_client_socket(const char *ip_address, int port);
+int setup_client_socket(int port);
 int setup_server_socket(int port);
 
 int main(int argc, char** argv)
@@ -107,11 +107,19 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
 void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 {
     #if DEV == true
+        struct sockaddr_in sendto_address;
         int sockfd;
+
+        memset(&sendto_address, 0, sizeof(sendto_address));
+        sendto_address.sin_family = AF_INET;
+        sendto_address.sin_addr.s_addr = INADDR_ANY;
+
         #if BASE == true
             sockfd = setup_server_socket(4000);
+            sendto_address.sin_port = htons(4000);
         #else
-            sockfd = setup_client_socket("192.168.131.132", 4001);
+            sockfd = setup_client_socket(4001);
+            sendto_address.sin_port = htons(4001);
         #endif
     #endif
 
@@ -120,7 +128,7 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 
         send_queue->waitAndPop(data);
         #if DEV == true
-            send(sockfd, (const void*) data.data(), data.size(), 0);
+            sendto(sockfd, (const void*) data.data(), data.size(), MSG_CONFIRM, (const struct sockaddr*) &sendto_address, sizeof(sendto_address));
         #else
             radio->transmit(data);
         #endif
@@ -130,11 +138,13 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
 {
     #if DEV == true
+        struct sockaddr_in recieve_addr;
+        memset(&recieve_addr, 0, sizeof(recieve_addr));
         int sockfd;
         #if BASE == true
             sockfd = setup_server_socket(4001);
         #else
-            sockfd = setup_client_socket("192.168.131.132", 4000);
+            sockfd = setup_client_socket(4000);
         #endif
     #endif
 
@@ -143,7 +153,9 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
             uint8_t payload[500];
             ssize_t bytes;
 
-            bytes = recv(sockfd, payload, 500, 0);
+            socklen_t len = sizeof(recieve_addr);
+            bytes = recvfrom(sockfd, payload, 500, 0, (struct sockaddr*)&recieve_addr, &len);
+            cout << "Bytes recieved: " << bytes << endl;
 
             if(bytes > 0) {
                 std::vector<uint8_t> data(payload, payload+bytes);
@@ -155,24 +167,11 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
     }
 }
 
-int setup_client_socket(const char *ip_address, int port)
+int setup_client_socket(int port)
 {
-    struct sockaddr_in server_address;
-
-    server_address.sin_family = AF_INET;
-    server_address.sin_port = htons(port); //UDP port
-
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0); //IPv4, UDP, IP
-
-    if (inet_pton(AF_INET, ip_address, &server_address.sin_addr) <= 0) {
-        cout << "did not connect: mobile, receive \n" << endl;
-        return -1;
-    }
-
-    if(connect(sockfd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) {
-        cout << "client did not connect: " << ip_address << " " << "port: " << port << endl;
-    } else {
-        cout << "client connected: " << ip_address << " " << "port: " << port << endl;
+    if (sockfd < 0) {
+        cout << "client socket creation failed, port: " << port << endl;
     }
 
     return sockfd;
@@ -194,6 +193,8 @@ int setup_server_socket(int port)
         cout << "failed to setsockopt: " << port << endl;
         return -1;
     }
+
+    memset(&address, 0, sizeof(address));
 
     address.sin_family = AF_INET;
     address.sin_port = htons(port);
