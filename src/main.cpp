@@ -89,7 +89,7 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
 
             if (index != 0 && payload[index] == 250 && payload[index - 1] == 250 && payload[index - 2] == 250 && payload[index - 3] == 250 && payload[index - 4] == 250) {
                 found_end = true;
-                ip_packet.insert(ip_packet.end(), payload.begin(), payload.begin() + index - 1);
+                ip_packet.insert(ip_packet.end(), payload.begin(), payload.begin() + index - 4);
 
                 #if VERBOSE == true
                 cout << "Found end! Total length: " << dec << ip_packet.size() << std::endl;
