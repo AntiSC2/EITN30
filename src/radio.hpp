@@ -48,12 +48,12 @@ public:
             } else if (m_verbose) {
                 std::cout << std::setfill('0') << std::setw(2) << std::uppercase << std::hex;
                 for (int i = 0; i < std::min(bytes_to_send, size_t(32)); i++) {
-                    std::cout << int(data[offset + i]);
+                    std::cout << int(payload[i]);
                 }
             }
 
-            offset += std::min(bytes_to_send, size_t(32));
-            bytes_to_send -= std::min(bytes_to_send, size_t(32));
+            offset += std::min(bytes_to_send, size_t(31));
+            bytes_to_send -= std::min(bytes_to_send, size_t(31));
         }
 
         if (m_verbose) {
