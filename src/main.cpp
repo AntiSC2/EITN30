@@ -111,7 +111,7 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
         #if BASE == true
             inet_aton("192.168.131.132", &inp);
             address.sin_port = htons(4000); //UDP port 4000
-            address.sin_addr.s_addr = inp;
+            address.sin_addr = inp;
             int addrlen = sizeof(address);
             //int setsockopt(int sockfd, int level, int optname,  const void *optval, socklen_t optlen);
             bind(sockfd, (struct sockaddr_in*) address, addrlen);
@@ -120,7 +120,7 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
         #else
             inet_aton("192.168.131.172", &inp);
             address.sin_port = htons(4001); //UDP port 4001
-            address.sin_addr.s_addr = inp;
+            address.sin_addr = inp;
             int addrlen = sizeof(address);
             connect(sockfd, (struct sockaddr*)&address, addrlen);
         #endif
@@ -131,7 +131,11 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 
         send_queue->waitAndPop(data);
         #if DEV == true
-            write(new_socket, (const void*) data.data(), data.size());
+            #if BASE == true
+                write(new_socket, (const void*) data.data(), data.size());
+            #else
+                write(sockfd, (const void*) data.data(), data.size());
+            #endif
         #else
             radio->transmit(data);
         #endif
@@ -148,7 +152,7 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
         #if BASE == true
             inet_aton("192.168.131.132", &inp);
             address.sin_port = htons(4001); //UDP port 4001
-            address.sin_addr.s_addr = inp;
+            address.sin_addr = inp;
             int addrlen = sizeof(address);
             //int setsockopt(int sockfd, int level, int optname,  const void *optval, socklen_t optlen);
             bind(sockfd, (struct sockaddr_in*) address, addrlen);
@@ -157,7 +161,7 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
         #else
             inet_aton("192.168.131.172", &inp);
             address.sin_port = htons(4000); //UDP port 4000
-            address.sin_addr.s_addr = inp;
+            address.sin_addr = inp;
             int addrlen = sizeof(address);
             connect(sockfd, (struct sockaddr*)&address, addrlen);
         #endif
@@ -166,7 +170,12 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
     while (true) {
         #if DEV == true
             uint8_t payload[500];
-            ssize_t bytes = read(new_socket, payload, 500);
+            ssize_t bytes;
+            #if BASE == true
+                bytes = read(new_socket, payload, 500);
+            #else
+                bytes = read(sockfd, payload, 500);
+            #endif
             if(bytes > 0) {
                 std::vector<uint8_t> data(payload, payload+bytes);
                 write_queue->push(data);
