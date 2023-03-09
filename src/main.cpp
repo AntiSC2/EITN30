@@ -92,7 +92,7 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
                 ip_packet.insert(ip_packet.end(), payload.begin(), payload.end() - 2);
 
                 #if VERBOSE == true
-                std::cout << "Found end! Total length: " << ip_packet.size() << std::endl;
+                cout << "Found end! Total length: " << dec << ip_packet.size() << std::endl;
                 #endif
 
                 break;
