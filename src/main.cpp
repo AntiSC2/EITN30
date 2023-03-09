@@ -112,14 +112,15 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 
         memset(&sendto_address, 0, sizeof(sendto_address));
         sendto_address.sin_family = AF_INET;
-        sendto_address.sin_addr.s_addr = INADDR_ANY;
 
         #if BASE == true
-            sockfd = setup_server_socket(4000);
+            sockfd = setup_client_socket(4000);
             sendto_address.sin_port = htons(4000);
+            sendto_address.sin_addr.s_addr = inet_addr("192.168.131.172");
         #else
             sockfd = setup_client_socket(4001);
             sendto_address.sin_port = htons(4001);
+            sendto_address.sin_addr.s_addr = inet_addr("192.168.131.132");
         #endif
     #endif
 
@@ -145,7 +146,7 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
         #if BASE == true
             sockfd = setup_server_socket(4001);
         #else
-            sockfd = setup_client_socket(4000);
+            sockfd = setup_server_socket(4000);
         #endif
     #endif
 
