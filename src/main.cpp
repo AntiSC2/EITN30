@@ -15,7 +15,7 @@
 using namespace std;
 
 #define VERBOSE false
-#define DEV     false
+#define DEV     true
 #define BASE    false
 
 void read_from_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* send_queue);
@@ -123,9 +123,9 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
             address.sin_port = htons(4001); //UDP port 4001
             address.sin_addr = inp;
             int addrlen = sizeof(address);
-            if((int err = connect(sockfd, (struct sockaddr*)&address, addrlen)) < 0) {
+            if(connect(sockfd, (struct sockaddr*)&address, addrlen) < 0) {
                 cout << "did not connect: mobile, transmit" << endl;
-            };
+            }
         #endif
     #endif
 
@@ -166,9 +166,9 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
             address.sin_port = htons(4000); //UDP port 4000
             address.sin_addr = inp;
             int addrlen = sizeof(address);
-            if((int err = connect(sockfd, (struct sockaddr*)&address, addrlen)) < 0) {
+            if(connect(sockfd, (struct sockaddr*)&address, addrlen) < 0) {
                 cout << "did not connect: mobile, receive" << endl;
-            };
+            }
         #endif
     #endif
 
