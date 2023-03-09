@@ -120,7 +120,7 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 
         send_queue->waitAndPop(data);
         #if DEV == true
-            write(sockfd, (const void*) data.data(), data.size());
+            send(sockfd, (const void*) data.data(), data.size(), 0);
         #else
             radio->transmit(data);
         #endif
@@ -143,7 +143,7 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
             uint8_t payload[500];
             ssize_t bytes;
 
-            bytes = read(sockfd, payload, 500);
+            bytes = recv(sockfd, payload, 500, 0);
 
             if(bytes > 0) {
                 std::vector<uint8_t> data(payload, payload+bytes);
@@ -202,6 +202,10 @@ int setup_server_socket(int port)
     if (bind(sockfd, (struct sockaddr*)&address, addrlen) < 0) {
         cout << "failed to bind port: " << port << endl;
         return -1;
+    }
+
+    if (sockfd > 0) {
+        cout << "server ready! port: " << port << endl;
     }
 
     return sockfd;
