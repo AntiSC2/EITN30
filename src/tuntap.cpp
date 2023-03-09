@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <iostream>
 
 
 TUNDevice::TUNDevice(std::string name, mode mode, int flags) {
