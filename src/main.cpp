@@ -95,10 +95,11 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
             ip_packet.insert(ip_packet.end(), payload.begin() + 1, payload.end());
         }
 
-        size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());
-
-        if (VERBOSE) {
-            cout << "ip_packet sent to tun0, bytes: " << dec << bytes_written << endl;
+        if(found_end && ip_packet.size() > 0) {
+            size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());
+            if (VERBOSE) {
+                cout << "ip_packet sent to tun0, bytes: " << dec << bytes_written << endl;
+            }
         }
     }
 }
