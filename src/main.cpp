@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -114,9 +115,9 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
             address.sin_addr = inp;
             int addrlen = sizeof(address);
             //int setsockopt(int sockfd, int level, int optname,  const void *optval, socklen_t optlen);
-            bind(sockfd, (struct sockaddr_in*) address, addrlen);
+            bind(sockfd, (struct sockaddr*)&address, addrlen);
             listen(sockfd, 1); //backlog 1
-            int new_socket = accept(sockfd, (struct sockaddr*)&address, &addrlen);
+            int new_socket = accept(sockfd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
         #else
             inet_aton("192.168.131.172", &inp);
             address.sin_port = htons(4001); //UDP port 4001
@@ -155,9 +156,9 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
             address.sin_addr = inp;
             int addrlen = sizeof(address);
             //int setsockopt(int sockfd, int level, int optname,  const void *optval, socklen_t optlen);
-            bind(sockfd, (struct sockaddr_in*) address, addrlen);
+            bind(sockfd, (struct sockaddr*)&address, addrlen);
             listen(sockfd, 1); //backlog 1
-            int new_socket = accept(sockfd, (struct sockaddr*)&address, &addrlen);
+            int new_socket = accept(sockfd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
         #else
             inet_aton("192.168.131.172", &inp);
             address.sin_port = htons(4000); //UDP port 4000
