@@ -82,23 +82,17 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
         while(!found_end && ip_packet.size() < 500) {
             write_queue->waitAndPop(payload);
 
-            int index = payload.size() - 1;
-            while (index > 4 && payload[index] == 0) {
-                index--;
-            }
-
-            if (index != 0 && payload[index] == 250 && payload[index - 1] == 250 && payload[index - 2] == 250 && payload[index - 3] == 250 && payload[index - 4] == 250) {
+            if(payload[0] == 1) {
                 found_end = true;
-                ip_packet.insert(ip_packet.end(), payload.begin(), payload.begin() + index - 4);
+                ip_packet.insert(ip_packet.end(), payload.begin() + 1, payload.end());
 
                 #if VERBOSE == true
-                cout << "Found end! Total length: " << dec << ip_packet.size() << std::endl;
+                    cout << "Found end! Total length: " << dec << ip_packet.size() << std::endl;
                 #endif
-
                 break;
             }
 
-            ip_packet.insert(ip_packet.end(), payload.begin(), payload.end());
+            ip_packet.insert(ip_packet.end(), payload.begin() + 1, payload.end());
         }
 
         size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());

@@ -18,20 +18,24 @@ public:
             std::cout << "Starting transmission, data sent: " << std::endl;
         }
 
-        data.push_back(250);
-        data.push_back(250);
-        data.push_back(250);
-        data.push_back(250);
-        data.push_back(250);
         size_t bytes_to_send = data.size();
         size_t offset = 0;
 
         while (bytes_to_send > 0) {
-            bool result = m_radio.writeFast(data.data() + offset, std::min(bytes_to_send, size_t(32)));
+            uint8_t payload[32];
+            memcpy(payload + 1, data.data() + offset, std::min(bytes_to_send, size_t(31)));
+
+            if (bytes_to_send < 32) {
+                payload[0] = 1;
+            } else {
+                payload[0] = 0;
+            }
+
+            bool result = m_radio.writeFast(payload, std::min(bytes_to_send + 1, size_t(32)));
 
             if (!result) {
                 m_radio.txStandBy();
-                result = m_radio.writeFast(data.data() + offset, std::min(bytes_to_send, size_t(32)));
+                result = m_radio.writeFast(payload, std::min(bytes_to_send + 1, size_t(32)));
 
                 if (m_verbose) {
                     std::cout << "Retrying write!" << std::endl;
