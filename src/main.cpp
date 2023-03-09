@@ -204,17 +204,5 @@ int setup_server_socket(int port)
         return -1;
     }
 
-    if (listen(sockfd, 3)) {
-        cout << "failed to listen port: " << port << endl;
-        return -1;
-    }
-
-    int new_socket = accept(sockfd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
-    if(new_socket < 0) {
-        cout << "server did not accept, port: " << port << endl;
-    } else {
-        cout << "server accepted, port: " << port << endl;
-    }
-
-    return new_socket;
+    return sockfd;
 }
