@@ -14,7 +14,7 @@
 
 using namespace std;
 
-#define VERBOSE true
+#define VERBOSE false
 #define DEV     false
 #define BASE    false
 
