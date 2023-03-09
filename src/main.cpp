@@ -14,8 +14,8 @@
 
 using namespace std;
 
-#define VERBOSE false
-#define DEV     true
+#define VERBOSE true
+#define DEV     false
 #define BASE    false
 
 void read_from_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* send_queue);
