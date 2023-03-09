@@ -22,6 +22,8 @@ void read_from_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* send_queue)
 void write_to_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* write_queue);
 void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue);
 void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue);
+int setup_client_socket(const char *ip_address, int port);
+int setup_server_socket(int port);
 
 int main(int argc, char** argv)
 {
@@ -105,34 +107,11 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
 void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 {
     #if DEV == true
-        struct in_addr inp;
-        struct sockaddr_in address;
-        address.sin_family = AF_INET;
-        int sockfd = socket(AF_INET, SOCK_DGRAM, 0); //IPv4, UDP, IP
+        int sockfd;
         #if BASE == true
-            inet_aton("192.168.131.172", &inp);
-            address.sin_port = htons(4000); //UDP port 4000
-            address.sin_addr.s_addr = INADDR_ANY;
-            int addrlen = sizeof(address);
-            int opt = 1;
-            setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
-            bind(sockfd, (struct sockaddr*)&address, addrlen);
-            listen(sockfd, 3); //backlog 1
-            int new_socket = accept(sockfd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
-            if(new_socket < 0) {
-                cout << "did not accept: base, transmit" << endl;
-            } else {
-                cout << "accepted: base, transmit" << endl;
-            }
+            sockfd = setup_server_socket(4000);
         #else
-            inet_pton(AF_INET, "192.168.131.132", &address.sin_addr);
-            address.sin_port = htons(4001); //UDP port 4001
-            int addrlen = sizeof(address);
-            if(connect(sockfd, (struct sockaddr*)&address, addrlen) < 0) {
-                cout << "did not connect: mobile, transmit" << endl;
-            } else {
-                cout << "connected: mobile, transmit" << endl;
-            }
+            sockfd = setup_client_socket("192.168.131.132", 4001);
         #endif
     #endif
 
@@ -141,11 +120,7 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 
         send_queue->waitAndPop(data);
         #if DEV == true
-            #if BASE == true
-                write(new_socket, (const void*) data.data(), data.size());
-            #else
-                write(sockfd, (const void*) data.data(), data.size());
-            #endif
+            write(sockfd, (const void*) data.data(), data.size());
         #else
             radio->transmit(data);
         #endif
@@ -154,35 +129,12 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 
 void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
 {
-        #if DEV == true
-        struct in_addr inp;
-        struct sockaddr_in address;
-        address.sin_family = AF_INET;
-        int sockfd = socket(AF_INET, SOCK_DGRAM, 0); //IPv4, UDP, IP
+    #if DEV == true
+        int sockfd;
         #if BASE == true
-            inet_aton("192.168.131.172", &inp);
-            address.sin_port = htons(4001); //UDP port 4001
-            address.sin_addr.s_addr = INADDR_ANY;
-            int addrlen = sizeof(address);
-            int opt = 1;
-            setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
-            bind(sockfd, (struct sockaddr*)&address, addrlen);
-            listen(sockfd, 3); //backlog 1
-            int new_socket = accept(sockfd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
-            if(new_socket < 0) {
-                cout << "did not accept: base, receive \n" << endl;
-            } else {
-                cout << "accepted: base, receive \n" << endl;
-            }
+            sockfd = setup_server_socket(4001);
         #else
-            inet_pton(AF_INET, "192.168.131.132", &address.sin_addr);
-            address.sin_port = htons(4000); //UDP port 4000
-            int addrlen = sizeof(address);
-            if(connect(sockfd, (struct sockaddr*)&address, addrlen) < 0) {
-                cout << "did not connect: mobile, receive \n" << endl;
-            } else {
-                cout << "connected: mobile, receive \n" << endl;
-            }
+            sockfd = setup_client_socket("192.168.131.132", 4000);
         #endif
     #endif
 
@@ -190,11 +142,9 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
         #if DEV == true
             uint8_t payload[500];
             ssize_t bytes;
-            #if BASE == true
-                bytes = read(new_socket, payload, 500);
-            #else
-                bytes = read(sockfd, payload, 500);
-            #endif
+
+            bytes = read(sockfd, payload, 500);
+
             if(bytes > 0) {
                 std::vector<uint8_t> data(payload, payload+bytes);
                 write_queue->push(data);
@@ -203,4 +153,68 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
             radio->recieve(write_queue);
         #endif
     }
+}
+
+int setup_client_socket(const char *ip_address, int port)
+{
+    struct sockaddr_in server_address;
+
+    server_address.sin_family = AF_INET;
+    server_address.sin_port = htons(port); //UDP port
+
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0); //IPv4, UDP, IP
+
+    if (inet_pton(AF_INET, ip_address, &server_address.sin_addr) <= 0) {
+        cout << "did not connect: mobile, receive \n" << endl;
+        return -1;
+    }
+
+    if(connect(sockfd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) {
+        cout << "client did not connect: " << ip_address << " " << "port: " << port << endl;
+    } else {
+        cout << "client connected: " << ip_address << " " << "port: " << port << endl;
+    }
+
+    return sockfd;
+}
+
+int setup_server_socket(int port)
+{
+    struct sockaddr_in address;
+    int addrlen = sizeof(address);
+    int opt = 1;
+
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0); //IPv4, UDP, IP
+    if (sockfd < 0) {
+        cout << "server socket failed, port: " << port << endl;
+        return -1;
+    }
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        cout << "failed to setsockopt: " << port << endl;
+        return -1;
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_port = htons(port);
+    address.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(sockfd, (struct sockaddr*)&address, addrlen) < 0) {
+        cout << "failed to bind port: " << port << endl;
+        return -1;
+    }
+
+    if (listen(sockfd, 3)) {
+        cout << "failed to listen port: " << port << endl;
+        return -1;
+    }
+
+    int new_socket = accept(sockfd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+    if(new_socket < 0) {
+        cout << "server did not accept, port: " << port << endl;
+    } else {
+        cout << "server accepted, port: " << port << endl;
+    }
+
+    return new_socket;
 }
