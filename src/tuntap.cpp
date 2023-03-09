@@ -55,7 +55,7 @@ size_t TUNDevice::read(void* buffer, size_t byte_count)
         std::string error_message = "Bytes read returned negative number: ";
         error_message += strerror(errno);
         //throw std::runtime_error(error_message);
-        cout << error_message << endl;
+        std::cout << error_message << std::endl;
     }
 
     return static_cast<size_t>(result);
@@ -69,7 +69,7 @@ size_t TUNDevice::write(void* buffer, size_t byte_count)
         std::string error_message = "Bytes written returned negative number: ";
         error_message += strerror(errno);
         //throw std::runtime_error(error_message);
-        cout << error_message << endl;
+        std::cout << error_message << std::endl;
     }
 
     return static_cast<size_t>(result);
