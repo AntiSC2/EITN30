@@ -76,24 +76,29 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
 {
     while (true) {
         std::vector<uint8_t> payload;
-        bool found_start = false;
+        bool found_end = false;
         std::vector<uint8_t> ip_packet;
-        uint16_t total_ip_length = 0;
 
-        while(!found_start || ip_packet.size() < total_ip_length) {
+        while(!found_end && ip_packet.size() < 500) {
             write_queue->waitAndPop(payload);
 
-            if(!found_start && int(payload[0] & 0b11110000) == 64) {
-                found_start = true;
-                ip_packet.insert(ip_packet.end(), payload.begin(), payload.end());
-                total_ip_length = ((uint16_t)ip_packet[2] << 8) + (uint16_t)ip_packet[3];
-
-                if (VERBOSE) {
-                    std::cout << "Found start! Total length: " << total_ip_length << std::endl;
-                }
-            } else if(found_start) {
-                ip_packet.insert(ip_packet.end(), payload.begin(), payload.end());
+            int index = payload.size() - 1;
+            while (index > 0 && payload[index] != '\0') {
+                index--;
             }
+
+            if (index != 0 && payload[index - 1] == '\0') {
+                found_end = true;
+                ip_packet.insert(ip_packet.end(), payload.begin(), payload.end() - 2);
+
+                #if VERBOSE == true
+                std::cout << "Found end! Total length: " << ip_packet.size() << std::endl;
+                #endif
+
+                break;
+            }
+
+            ip_packet.insert(ip_packet.end(), payload.begin(), payload.end());
         }
 
         size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());
