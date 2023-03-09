@@ -114,10 +114,16 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
             address.sin_port = htons(4000); //UDP port 4000
             address.sin_addr = inp;
             int addrlen = sizeof(address);
-            //int setsockopt(int sockfd, int level, int optname,  const void *optval, socklen_t optlen);
+            int opt = 1;
+            setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
             bind(sockfd, (struct sockaddr*)&address, addrlen);
             listen(sockfd, 1); //backlog 1
             int new_socket = accept(sockfd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+            if(new_socket < 0) {
+                cout << "did not accept: base, transmit" << endl;
+            } else {
+                cout << "accepted: base, transmit" << endl;
+            }
         #else
             inet_aton("192.168.131.132", &inp);
             address.sin_port = htons(4001); //UDP port 4001
@@ -125,6 +131,8 @@ void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
             int addrlen = sizeof(address);
             if(connect(sockfd, (struct sockaddr*)&address, addrlen) < 0) {
                 cout << "did not connect: mobile, transmit" << endl;
+            } else {
+                cout << "connected: mobile, transmit" << endl;
             }
         #endif
     #endif
@@ -157,10 +165,16 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
             address.sin_port = htons(4001); //UDP port 4001
             address.sin_addr = inp;
             int addrlen = sizeof(address);
-            //int setsockopt(int sockfd, int level, int optname,  const void *optval, socklen_t optlen);
+            int opt = 1;
+            setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
             bind(sockfd, (struct sockaddr*)&address, addrlen);
             listen(sockfd, 1); //backlog 1
             int new_socket = accept(sockfd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+            if(new_socket < 0) {
+                cout << "did not accept: base, receive" << endl;
+            } else {
+                cout << "accepted: base, receive" << endl;
+            }
         #else
             inet_aton("192.168.131.132", &inp);
             address.sin_port = htons(4000); //UDP port 4000
@@ -168,6 +182,8 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
             int addrlen = sizeof(address);
             if(connect(sockfd, (struct sockaddr*)&address, addrlen) < 0) {
                 cout << "did not connect: mobile, receive" << endl;
+            } else {
+                cout << "connected: mobile, receive" << endl;
             }
         #endif
     #endif
