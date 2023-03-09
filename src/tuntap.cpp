@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <errno.h>
 
 
 TUNDevice::TUNDevice(std::string name, mode mode, int flags) {
@@ -50,7 +51,7 @@ size_t TUNDevice::read(void* buffer, size_t byte_count)
     ssize_t result = ::read(m_fd, buffer, byte_count);
 
     if (result < 0) {
-        throw std::runtime_error("Bytes read returned negative number");
+        throw std::runtime_error("Bytes read returned negative number: " + strerror_r(errno));
     }
 
     return static_cast<size_t>(result);
@@ -61,7 +62,7 @@ size_t TUNDevice::write(void* buffer, size_t byte_count)
     ssize_t result = ::write(m_fd, buffer, byte_count);
 
     if (result < 0) {
-        throw std::runtime_error("Bytes written returned negative number");
+        throw std::runtime_error("Bytes written returned negative number: " + strerror_r(errno));
     }
 
     return static_cast<size_t>(result);
