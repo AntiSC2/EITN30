@@ -18,8 +18,8 @@ public:
             std::cout << "Starting transmission, data sent: " << std::endl;
         }
 
-        data.push_back('\0');
-        data.push_back('\0');
+        data.push_back(250);
+        data.push_back(250);
         size_t bytes_to_send = data.size();
         size_t offset = 0;
 
