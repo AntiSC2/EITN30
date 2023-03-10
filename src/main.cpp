@@ -14,10 +14,6 @@
 
 using namespace std;
 
-#define VERBOSE false
-#define DEV     false
-#define BASE    false
-
 void read_from_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* send_queue);
 void write_to_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* write_queue);
 void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue);
@@ -27,17 +23,22 @@ int setup_server_socket(int port);
 
 int main(int argc, char** argv)
 {
+    #ifdef BASE
     bool radioNumber = 1;
+    #else
+    bool radioNumber = 0;
+    #endif
 
     uint8_t address[4][6] = {"1Node", "2Node", "3Node", "4Node"};
 
-    cout << "Which radio is this? Enter '0' or '1'. Defaults to '0' ";
-    string input;
-    getline(cin, input);
-    radioNumber = input.length() > 0 && (uint8_t)input[0] == 49;
+    #ifndef VERBOSE
+    Radio radio_tx(17, address[!radioNumber + 1], address[radioNumber], false);
+    Radio radio_rx(27, address[!radioNumber], address[radioNumber + 1], false);
+    #else
+    Radio radio_tx(17, address[!radioNumber + 1], address[radioNumber], true);
+    Radio radio_rx(27, address[!radioNumber], address[radioNumber + 1], true);
+    #endif
 
-    Radio radio_tx(17, address[!radioNumber + 1], address[radioNumber], VERBOSE);
-    Radio radio_rx(27, address[!radioNumber], address[radioNumber + 1], VERBOSE);
     TUNDevice device("tun0", mode::TUN, 2);
     radio_tx.setListening(false);
     radio_rx.setListening(true);
@@ -86,8 +87,8 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
                 found_end = true;
                 ip_packet.insert(ip_packet.end(), payload.begin() + 1, payload.end());
 
-                #if VERBOSE == true
-                    cout << "Found end! Total length: " << dec << ip_packet.size() << std::endl;
+                #ifdef VERBOSE
+                cout << "Found end! Total length: " << dec << ip_packet.size() << std::endl;
                 #endif
                 break;
             }
@@ -97,74 +98,74 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
 
         if(found_end && ip_packet.size() > 0) {
             size_t bytes_written = device->write(ip_packet.data(), ip_packet.size());
-            if (VERBOSE) {
-                cout << "ip_packet sent to tun0, bytes: " << dec << bytes_written << endl;
-            }
+            #ifdef VERBOSE
+            cout << "ip_packet sent to tun0, bytes: " << dec << bytes_written << endl;
+            #endif
         }
     }
 }
 
 void radio_transmit(Radio* radio, LockingQueue<vector<uint8_t>>* send_queue)
 {
-    #if DEV == true
-        struct sockaddr_in sendto_address;
-        int sockfd;
+    #ifdef USE_UDP
+    struct sockaddr_in sendto_address;
+    int sockfd;
 
-        memset(&sendto_address, 0, sizeof(sendto_address));
-        sendto_address.sin_family = AF_INET;
+    memset(&sendto_address, 0, sizeof(sendto_address));
+    sendto_address.sin_family = AF_INET;
 
-        #if BASE == true
-            sockfd = setup_client_socket(4000);
-            sendto_address.sin_port = htons(4000);
-            sendto_address.sin_addr.s_addr = inet_addr("192.168.131.172");
-        #else
-            sockfd = setup_client_socket(4001);
-            sendto_address.sin_port = htons(4001);
-            sendto_address.sin_addr.s_addr = inet_addr("192.168.131.132");
-        #endif
+    #ifdef BASE
+        sockfd = setup_client_socket(4000);
+        sendto_address.sin_port = htons(4000);
+        sendto_address.sin_addr.s_addr = inet_addr("192.168.131.172");
+    #else
+        sockfd = setup_client_socket(4001);
+        sendto_address.sin_port = htons(4001);
+        sendto_address.sin_addr.s_addr = inet_addr("192.168.131.132");
+    #endif
     #endif
 
     while (true) {
         std::vector<uint8_t> data;
 
         send_queue->waitAndPop(data);
-        #if DEV == true
-            ssize_t bytes = sendto(sockfd, (const void*) data.data(), data.size(), MSG_CONFIRM, (const struct sockaddr*) &sendto_address, sizeof(sendto_address));
-            cout << "Sending data: " << bytes << endl;
+        #ifdef USE_UDP
+        ssize_t bytes = sendto(sockfd, (const void*) data.data(), data.size(), MSG_CONFIRM, (const struct sockaddr*) &sendto_address, sizeof(sendto_address));
+        cout << "Sending data: " << bytes << endl;
         #else
-            radio->transmit(data);
+        radio->transmit(data);
         #endif
     }
 }
 
 void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
 {
-    #if DEV == true
-        struct sockaddr_in recieve_addr;
-        memset(&recieve_addr, 0, sizeof(recieve_addr));
-        int sockfd;
-        #if BASE == true
-            sockfd = setup_server_socket(4001);
-        #else
-            sockfd = setup_server_socket(4000);
-        #endif
+    #ifdef USE_UDP
+    struct sockaddr_in recieve_addr;
+    memset(&recieve_addr, 0, sizeof(recieve_addr));
+    int sockfd;
+    #ifdef BASE
+        sockfd = setup_server_socket(4001);
+    #else
+        sockfd = setup_server_socket(4000);
+    #endif
     #endif
 
     while (true) {
-        #if DEV == true
-            uint8_t payload[500];
-            ssize_t bytes;
+        #ifdef USE_UDP
+        uint8_t payload[500];
+        ssize_t bytes;
 
-            socklen_t len = sizeof(recieve_addr);
-            bytes = recvfrom(sockfd, payload, 500, 0, (struct sockaddr*)&recieve_addr, &len);
-            cout << "Bytes recieved: " << bytes << endl;
+        socklen_t len = sizeof(recieve_addr);
+        bytes = recvfrom(sockfd, payload, 500, 0, (struct sockaddr*)&recieve_addr, &len);
+        cout << "Bytes recieved: " << bytes << endl;
 
-            if(bytes > 0) {
-                std::vector<uint8_t> data(payload, payload+bytes);
-                write_queue->push(data);
-            }
+        if(bytes > 0) {
+            std::vector<uint8_t> data(payload, payload+bytes);
+            write_queue->push(data);
+        }
         #else
-            radio->recieve(write_queue);
+        radio->recieve(write_queue);
         #endif
     }
 }

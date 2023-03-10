@@ -41,3 +41,19 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 	${pigpio_LIBRARY}
 	pthread
 )
+
+option(USE_UDP "Use a UDP socket instead of the radio hardware" FALSE)
+option(VERBOSE "Print output helpful for debugging when running the program" FALSE)
+option(BASE "Compiles with settings for base unit" FALSE)
+
+if (USE_UDP)
+	add_compile_definitions(USE_UDP)
+endif ()
+
+if (VERBOSE)
+	add_compile_definitions(VERBOSE)
+endif ()
+
+if (BASE)
+	add_compile_definitions(BASE)
+endif ()
