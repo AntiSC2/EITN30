@@ -33,6 +33,9 @@ int main(int argc, char** argv)
     bool radioNumber = 0;
     #endif
 
+    cout << "MTU set to: " << MTU << endl;
+    cout << "Radio number set to: " << (int)radioNumber << endl;
+
     uint8_t address[4][6] = {"1Node", "2Node", "3Node", "4Node"};
 
     #ifndef VERBOSE
