@@ -58,3 +58,5 @@ endif ()
 if (BASE)
 	add_compile_definitions(BASE)
 endif ()
+
+add_compile_definitions(MTU=${MTU})

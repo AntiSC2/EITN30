@@ -12,6 +12,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#ifndef MTU
+#define MTU 500
+#endif
+
 using namespace std;
 
 void read_from_tun(TUNDevice *device, LockingQueue<vector<uint8_t>>* send_queue);
@@ -60,10 +64,10 @@ int main(int argc, char** argv)
 
 void read_from_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* send_queue)
 {
-    unsigned char payload[1024];
+    unsigned char payload[MTU];
 
     while (true) {
-        size_t bytes_read = device->read(&payload, 1024);
+        size_t bytes_read = device->read(&payload, MTU);
         payload[bytes_read] = '\0';
         vector<uint8_t> data(payload, payload + bytes_read);
 
@@ -153,11 +157,11 @@ void radio_recieve(Radio* radio, LockingQueue<vector<uint8_t>>* write_queue)
 
     while (true) {
         #ifdef USE_UDP
-        uint8_t payload[500];
+        uint8_t payload[MTU];
         ssize_t bytes;
 
         socklen_t len = sizeof(recieve_addr);
-        bytes = recvfrom(sockfd, payload, 500, 0, (struct sockaddr*)&recieve_addr, &len);
+        bytes = recvfrom(sockfd, payload, MTU, 0, (struct sockaddr*)&recieve_addr, &len);
         cout << "Bytes recieved: " << bytes << endl;
 
         if(bytes > 0) {
