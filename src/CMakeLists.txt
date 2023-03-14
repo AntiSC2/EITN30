@@ -45,6 +45,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 option(USE_UDP "Use a UDP socket instead of the radio hardware" FALSE)
 option(VERBOSE "Print output helpful for debugging when running the program" FALSE)
 option(BASE "Compiles with settings for base unit" FALSE)
+option(MTU "Set MTU" 1000)
 
 if (USE_UDP)
 	add_compile_definitions(USE_UDP)

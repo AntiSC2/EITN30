@@ -80,7 +80,7 @@ void write_to_tun(TUNDevice* device, LockingQueue<vector<uint8_t>>* write_queue)
         bool found_end = false;
         std::vector<uint8_t> ip_packet;
 
-        while(!found_end && ip_packet.size() < 500) {
+        while(!found_end && ip_packet.size() < MTU) {
             write_queue->waitAndPop(payload);
 
             if(payload[0] == 1) {
